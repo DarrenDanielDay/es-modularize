@@ -1,5 +1,7 @@
 # es-modularize
 
+[![Publish CI](https://github.com/DarrenDanielDay/es-modularize/actions/workflows/publish.yml/badge.svg)](https://github.com/DarrenDanielDay/func-di/actions/) [![npm version](https://badge.fury.io/js/es-modularize.svg)](https://badge.fury.io/js/func-di)
+
 A browser only tool for converting npm package to ES module.
 
 This library allows the following code to work correctly in browser thanks to a modern feature `<script type="importmap">`.
