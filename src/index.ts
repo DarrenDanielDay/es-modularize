@@ -1,4 +1,18 @@
-const ESModularize = {
+import { createBrowserFS } from "./browser";
+import { createPackageHost } from "./host";
+import { createNetReader } from "./net";
+import { createProjectLoader } from "./project-loader";
+import { createPackageRegistry } from "./registry";
+
+const _ESModularize = {
+  createProjectLoader(config?: Partial<{ cdnRoot: string; registry?: string }>) {
+    const fs = createBrowserFS(config?.cdnRoot);
+    const net = createNetReader(fetch);
+    const registry = createPackageRegistry(net, config?.registry);
+    const host = createPackageHost(fs, registry);
+    const projectLoader = createProjectLoader(host);
+    return projectLoader;
+  },
   load(path: string) {
     const umd = (globalNamespace: string) => {
       const globalObject = Reflect.get(globalThis, globalNamespace);
@@ -51,4 +65,7 @@ const ESModularize = {
     }
   },
 };
-Object.assign(globalThis, { ESModularize });
+declare global {
+  var ESModularize: typeof _ESModularize;
+}
+Object.assign(globalThis, { ESModularize: _ESModularize });

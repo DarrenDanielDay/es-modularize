@@ -10,6 +10,7 @@ const config = {
   devServer: {
     compress: true,
     port: 3001,
+    open: "/src/public",
     static: [
       ...dirs.map((public) => ({
         directory: public,
