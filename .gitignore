@@ -1,6 +1,12 @@
 # For this project
-dist/*.js
-dist/*.js.map
+demo/index.js
+demo/index.js.map
+demo/main.js
+demo/main.js.map
+dist/**/*.d.ts.map
+dist/**/*.d.ts
+dist/**/*.js
+dist/**/*.js.map
 !dist/setup.js
 
 # Logs

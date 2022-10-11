@@ -35,7 +35,7 @@ jobs:
       - name: Deploy Github Pages
         uses: crazy-max/ghaction-github-pages@v2.5.0
         with:
-          build_dir: dist
+          build_dir: demo
           commit_message: "deploy: Deployed by Github Actions"
           jekyll: false
           verbose: true

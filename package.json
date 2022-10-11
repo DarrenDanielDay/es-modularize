@@ -2,14 +2,17 @@
   "name": "es-modularize",
   "version": "1.0.0",
   "description": "A browser only library for converting npm package to ES module.",
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
+  "type": "module",
   "scripts": {
     "start": "concurrently npm:start:*",
-    "start:serve": "open-cli http://localhost:3001 && serve dist -p 3001",
-    "start:watch": "esbuild ./src/index.ts --format=iife --platform=browser --watch --bundle --outfile=./dist/index.js --sourcemap --target=es2020",
-    "start:demo": "esbuild ./src/demo/main.tsx --format=esm --outfile=./dist/main.js --watch --sourcemap --target=es2020",
-    "build:demo": "esbuild ./src/demo/main.tsx --format=esm --outfile=./dist/main.js --minify --sourcemap --target=es2020 && esbuild ./src/index.ts --format=iife --platform=browser --minify --bundle --outfile=./dist/index.js --sourcemap --target=es2020",
-    "build": "ts-esmbuilder"
+    "start:serve": "open-cli http://localhost:3001 && serve demo -p 3001",
+    "start:watch": "esbuild ./src/index.ts --format=iife --platform=browser --watch --bundle --outfile=./demo/index.js --sourcemap --target=es2020",
+    "start:demo": "esbuild ./demo/main.tsx --format=esm --outfile=./demo/main.js --watch --sourcemap --target=es2020",
+    "build:demo": "esbuild ./demo/main.tsx --format=esm --outfile=./demo/main.js --minify --sourcemap --target=es2020 && esbuild ./src/index.ts --format=iife --platform=browser --minify --bundle --outfile=./demo/index.js --sourcemap --target=es2020",
+    "build": "concurrently npm:build:*",
+    "build:node": "ts-esmbuilder",
+    "build:browser": "esbuild ./src/index.ts --format=iife --platform=browser --bundle --minify --outfile=./dist/browser.bundle.min.js --target=es2020"
   },
   "repository": {
     "type": "git",
@@ -22,6 +25,10 @@
     "email": "Darren_Daniel_Day@hotmail.com",
     "name": "Darren Daniel Day",
     "url": "https://github.com/DarrenDanielDay"
+  },
+  "module": "./dist/index.js",
+  "exports": {
+    ".": "./dist"
   },
   "license": "MIT",
   "bugs": {
