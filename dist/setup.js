@@ -1,4 +1,4 @@
-/// <reference path="../index.ts" />
+/// <reference path="../src/index.ts" />
 // @ts-check
 ESModularize.createProjectLoader()
   .load(

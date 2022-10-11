@@ -5,7 +5,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src="/src/public/logo.svg" className="App-logo" alt="logo" />
+        <img src="./logo.svg" className="App-logo" alt="logo" />
         <p>
           Edit <code>src/demo/main.tsx</code> and save to reload.
         </p>
