@@ -1,7 +1,7 @@
 import { ESModuleFile, ESModuleFileType, PackageHost, ScriptURL } from "./core";
 import { notFound, notSupported } from "./errors";
-import { polyfillProcess } from "./node-polyfills";
-import { die, Func, proxyGlobalVariableForCode, Static, trimSlash, virgin, warn } from "./utils";
+import { NodePolyfills, polyfillProcess } from "./node-polyfills";
+import { DeepPartial, die, Func, proxyGlobalVariableForCode, Static, trimSlash, virgin, warn } from "./utils";
 
 export interface ModuleExports {
   readonly __esModule?: true;
@@ -82,7 +82,6 @@ export const loadCJSModule = (file: ESModuleFile, host: PackageHost): NodeJS.Mod
       exports,
       module,
       require,
-      process: polyfillProcess(),
     })();
   });
 
@@ -141,7 +140,6 @@ export interface CJSGlobals {
   require: NodeRequire;
   module: NodeJS.Module;
   exports: ModuleExports;
-  process: NodeJS.Process;
 }
 
 export const createCJSFactory = proxyGlobalVariableForCode<CJSGlobals>;

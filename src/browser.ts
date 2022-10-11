@@ -1,4 +1,3 @@
-import type { ModuleExports } from "./cjs";
 import { globalEvaluatedVariable } from "./constants";
 import type { FS, ScriptURL } from "./core";
 import { createNetReader } from "./net";

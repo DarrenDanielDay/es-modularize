@@ -1,15 +1,29 @@
 import { createBlob, createESMProxyScript } from "./browser";
 import { loadCJSModule } from "./cjs";
 import { Dependencies, ESModuleFileType, ImportMapJSON, PackageHost, PackageMeta } from "./core";
-import { Perform, performAll, performAs, Resume } from "./utils";
+import type { NodePolyfills } from "./node-polyfills";
+import { DeepPartial, Perform, performAll, performAs, Resume } from "./utils";
 
 export type ProjectLoader = {
   /** load */
   load: Perform<[deps: Dependencies, loadOnly?: string[]], ImportMapJSON>;
 };
 
-export const createProjectLoader = (host: PackageHost): ProjectLoader => {
+export type ProjectLoaderConfig = Partial<{
+  /**
+   * @default "https://registry.npmjs.org"
+   */
+  cdnRoot: string;
+  /**
+   * @default "https://unpkg.com"
+   */
+  registry: string;
+  nodeGlobals: NodePolyfills;
+}>;
+
+export const createProjectLoader = (host: PackageHost, config?: ProjectLoaderConfig): ProjectLoader => {
   const load: ProjectLoader["load"] = performAs((resume, deps, loadOnly) => {
+    Object.assign(globalThis, config?.nodeGlobals);
     performAll(
       Object.entries(deps),
       performAs((resume: Resume<[pkg: string, meta: PackageMeta | null]>, name, specifier) => {
@@ -45,7 +59,7 @@ export const createProjectLoader = (host: PackageHost): ProjectLoader => {
       ).then((groups) => {
         const mapping = Object.fromEntries(groups.flatMap((group) => group));
         resume({
-          mapping,
+          imports: mapping,
         });
       });
     });

@@ -3,6 +3,11 @@ export type Func<T extends (...args: readonly never[]) => unknown> = (
   this: ThisParameterType<T>,
   ...args: Parameters<T>
 ) => ReturnType<T>;
+export type DeepPartial<T> = T extends string | number | boolean | undefined | null | symbol | bigint
+  ? T
+  : T extends Static<infer S> & Func<infer F> ? DeepPartial<S> & F
+  : { -readonly [K in keyof T]?: DeepPartial<T[K]> };
+
 export const die = (message?: string, ErrorCtor: new (message?: string) => Error = Error) => {
   throw create(ErrorCtor, message);
 };

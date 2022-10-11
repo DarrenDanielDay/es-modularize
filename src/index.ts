@@ -1,16 +1,17 @@
 import { createBrowserFS } from "./browser";
+import type { ImportMapJSON } from "./core";
 import { createPackageHost } from "./host";
 import { createNetReader } from "./net";
-import { createProjectLoader } from "./project-loader";
+import { createProjectLoader, ProjectLoaderConfig } from "./project-loader";
 import { createPackageRegistry } from "./registry";
 
 const _ESModularize = {
-  createProjectLoader(config?: Partial<{ cdnRoot: string; registry?: string }>) {
+  createProjectLoader(config?: ProjectLoaderConfig) {
     const fs = createBrowserFS(config?.cdnRoot);
     const net = createNetReader(fetch);
     const registry = createPackageRegistry(net, config?.registry);
     const host = createPackageHost(fs, registry);
-    const projectLoader = createProjectLoader(host);
+    const projectLoader = createProjectLoader(host, config);
     return projectLoader;
   },
   load(path: string) {
@@ -51,12 +52,10 @@ const _ESModularize = {
       },
     };
   },
-  build(mapping: Record<string, string | null>) {
+  build(map: ImportMapJSON) {
     const importmap = document.createElement("script");
     importmap.type = "importmap";
-    importmap.textContent = JSON.stringify({
-      imports: mapping,
-    });
+    importmap.textContent = JSON.stringify(map);
     const firstScript = document.currentScript || document.querySelector("script");
     if (firstScript) {
       firstScript.after(importmap);

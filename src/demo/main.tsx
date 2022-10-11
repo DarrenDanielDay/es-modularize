@@ -7,7 +7,7 @@ function App() {
       <header className="App-header">
         <img src="./logo.svg" className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/demo/main.tsx</code> and save to reload.
+          Edit <code>src/demo/main.tsx</code>, save {"&"} press <kbd>F5</kbd> to reload.
         </p>
         <a className="App-link" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
           Learn React

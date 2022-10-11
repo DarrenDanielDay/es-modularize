@@ -55,13 +55,6 @@ export interface PackageJSON {
   peerDependencies?: Dependencies;
 }
 
-export type ExportMeta = {
-  /** path */
-  subpath: string;
-  /** alias */
-  alias: string;
-};
-
 export type PendingPackageMeta = {
   /** package.json */
   packageJSON: PackageJSON;
@@ -140,7 +133,7 @@ export type PackageHost = {
 };
 
 export interface ImportMapJSON {
-  mapping: Record<string, string>;
+  imports: Record<string, string>;
 }
 
 /**
