@@ -9,6 +9,7 @@ export type PackageRegistry = {
 };
 export const createPackageRegistry = (net: NetReader, registry = "https://registry.npmjs.org"): PackageRegistry => {
   registry = trimSlash(registry);
+  const resolveCache: Record<string, PackageJSON> = {};
   const resolve: PackageRegistry["resolve"] = ({ name, specifier }) => {
     let isExact = specifier === latest;
     if (!isExact) {
@@ -20,7 +21,16 @@ export const createPackageRegistry = (net: NetReader, registry = "https://regist
       }
     }
     const target = isExact ? `${name}/${specifier}` : name;
-    const response = net.read(`${registry}/${target}`);
+    const url = `${registry}/${target}`;
+    const resolved = resolveCache[url];
+    if (resolved) {
+      return resolved;
+    }
+    const resolveAs = (packageJSON: PackageJSON) => {
+      resolveCache[url] = packageJSON;
+      return packageJSON;
+    };
+    const response = net.read(url);
     const content = response?.content;
     if (typeof content !== "string") {
       return die(`Invalid registry response content, got ${getStringTag(content)}`);
@@ -29,7 +39,7 @@ export const createPackageRegistry = (net: NetReader, registry = "https://regist
       let data = JSON.parse(content);
       if (isExact) {
         // Skip package.json checkes
-        return data;
+        return resolveAs(data);
       }
       if (data.error) {
         return die(`The registry server responded an error: ${JSON.stringify(data.error)}`);
@@ -61,9 +71,9 @@ export const createPackageRegistry = (net: NetReader, registry = "https://regist
         if (!data) {
           return die(`Cannot find version info of ${version} in registry versions.`);
         }
-        // Skip package.json checkes
-        return data;
       }
+      // Skip package.json checkes
+      return resolveAs(data);
       //#endregion
     } catch (error) {
       console.error(error);
