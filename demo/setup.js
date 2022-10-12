@@ -13,7 +13,7 @@ const importMap = ESModularize.createProjectLoader({
     react: "latest",
     "react-dom": "latest",
   },
-  // ["react", "react-dom/client"]
+  ["react", "react-dom/client"]
 );
 
 ESModularize.build(importMap);
