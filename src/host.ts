@@ -1,5 +1,5 @@
 import path from "path-browserify";
-import { relativeTo, selfReference } from "./constants";
+import { latest, relativeTo, selfReference } from "./constants";
 import {
   type FS,
   type PackageHost,
@@ -107,8 +107,8 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
     resolvePackage({
       name: pkg,
       specifier: warn(
-        `Dependency "${pkg}" is used by "${currentURL.url}" but not specified in package.json. Using "latest" for dependency versioning.`,
-        "latest"
+        `Dependency "${pkg}" is used by "${currentURL.url}" but not specified in package.json. Using "${latest}" for dependency versioning.`,
+        latest
       ),
     }).then(nextSteps);
   });

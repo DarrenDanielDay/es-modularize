@@ -11,8 +11,8 @@ ESModularize.createProjectLoader({
 })
   .load(
     {
-      react: "^18",
-      "react-dom": "^18",
+      react: "latest",
+      "react-dom": "latest",
     },
     ["react", "react-dom/client"]
   )
