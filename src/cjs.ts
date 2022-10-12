@@ -63,6 +63,7 @@ const loadAsCJSModule = (
   const exports = createExport();
   const require = createRequire(url, host);
   const module = createModule(url, require, exports);
+  cache[url.url] = module;
   loader(exports, require, module);
   module.loaded = true;
   return module;
@@ -127,7 +128,6 @@ export const createRequire = (url: ScriptURL, host: PackageHost): NodeJS.Require
       }
       return;
     });
-    cache[id] = module!;
     return module!.exports;
   };
   return Object.assign(require, requireStatic);
