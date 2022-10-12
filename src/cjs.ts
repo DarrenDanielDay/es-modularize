@@ -1,7 +1,6 @@
-import { ESModuleFile, ESModuleFileType, PackageHost, ScriptURL } from "./core";
+import { type ESModuleFile, ESModuleFileType, type PackageHost, type ScriptURL } from "./core";
 import { notFound, notSupported } from "./errors";
-import { NodePolyfills, polyfillProcess } from "./node-polyfills";
-import { DeepPartial, die, Func, proxyGlobalVariableForCode, Static, trimSlash, virgin, warn } from "./utils";
+import { type Func, proxyGlobalVariableForCode, type Static, trimSlash, virgin, warn } from "./utils";
 
 export interface ModuleExports {
   readonly __esModule?: true;

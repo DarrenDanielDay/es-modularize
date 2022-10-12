@@ -1,5 +1,5 @@
 import { contentTypeHeader } from "./constants";
-import { create, Perform, performAs } from "./utils";
+import { create, type Perform, performAs } from "./utils";
 
 export type RawResponse = {
   /** url */

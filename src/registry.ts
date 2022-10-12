@@ -1,6 +1,6 @@
 import type { PackageJSON, PackageSpec } from "./core";
 import type { NetReader } from "./net";
-import { die, getStringTag, Perform, performAs, trimSlash } from "./utils";
+import { die, getStringTag, type Perform, performAs, trimSlash } from "./utils";
 import { maxSatisfying, SemVer } from "semver";
 import { latest } from "./constants";
 export type PackageRegistry = {

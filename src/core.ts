@@ -1,6 +1,6 @@
 import type path from "path-browserify";
 import { scopeTag, selfReference, slash } from "./constants";
-import { die, Perform } from "./utils";
+import { die, type Perform } from "./utils";
 
 export enum ESModuleFileType {
   JSON = "json",
@@ -15,7 +15,7 @@ export type PackageSpec = {
   specifier: string;
 };
 
-export type Dependencies = Record<string, string>;
+export type Dependencies = { [packageName: string]: string };
 
 export type PlatformExportPath = Record<
   "deno" | "browser" | "worker" | "node" | "default" | "import" | "require",

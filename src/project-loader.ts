@@ -1,12 +1,21 @@
 import { createBlob, createESMProxyScript } from "./browser";
 import { loadCJSModule } from "./cjs";
-import { Dependencies, ESModuleFileType, ImportMapJSON, PackageHost, PackageMeta } from "./core";
+import { type Dependencies, ESModuleFileType, type ImportMapJSON, type PackageHost, type PackageMeta } from "./core";
 import type { NodePolyfills } from "./node-polyfills";
-import { DeepPartial, Perform, performAll, performAs, Resume } from "./utils";
+import { performAll, performAs, Performed, Resume } from "./utils";
 
 export type ProjectLoader = {
-  /** load */
-  load: Perform<[deps: Dependencies, loadOnly?: string[]], ImportMapJSON>;
+  /**
+   * Load a project's dependency import map.
+   * **WARNING:**
+   * If {@link loadOnly} is not specified,
+   * all exports and dependency scripts will be resolved, downloaded and evaluated.
+   * The browser may send thousands of HTTP requests even if you just imported a simple package like `react-dom`!
+   *
+   * @param deps the dependecy mapping
+   * @param loadOnly the import paths you want to create alias, default to all possible import paths
+   */
+  load(deps: Dependencies, loadOnly?: string[]): Performed<ImportMapJSON>;
 };
 
 export type ProjectLoaderConfig = Partial<{
@@ -18,6 +27,10 @@ export type ProjectLoaderConfig = Partial<{
    * @default "https://unpkg.com"
    */
   registry: string;
+  /**
+   * The ndoe global variables you want to inject.
+   * Useful when referenced npm packages are using `process.env.NODE_ENV` etc.
+   */
   nodeGlobals: NodePolyfills;
 }>;
 

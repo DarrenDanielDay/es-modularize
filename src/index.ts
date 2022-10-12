@@ -14,6 +14,11 @@ const _ESModularize = {
     const projectLoader = createProjectLoader(host, config);
     return projectLoader;
   },
+  /**
+   * Load a script directly, useful for UMD sources.
+   * @param path script path
+   * @returns sub clause
+   */
   load(path: string) {
     const umd = (globalNamespace: string) => {
       const globalObject = Reflect.get(globalThis, globalNamespace);
@@ -52,6 +57,17 @@ const _ESModularize = {
       },
     };
   },
+  /**
+   * Build and create an HTMLScriptElement like this:
+   * 
+   * ```html
+   * <script type="importmap">
+   *  {"imports": {"npm-package-name": "some URL of JavaScript file in ES module format"}}
+   * </script>
+   * ```
+   * 
+   * @param map import map
+   */
   build(map: ImportMapJSON) {
     const importmap = document.createElement("script");
     importmap.type = "importmap";
