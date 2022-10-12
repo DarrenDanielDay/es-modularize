@@ -1,6 +1,6 @@
 /// <reference path="../src/index.ts" />
 // @ts-check
-ESModularize.createProjectLoader({
+const importMap = ESModularize.createProjectLoader({
   nodeGlobals: {
     process: {
       env: {
@@ -8,14 +8,12 @@ ESModularize.createProjectLoader({
       },
     },
   },
-})
-  .load(
-    {
-      react: "latest",
-      "react-dom": "latest",
-    },
-    ["react", "react-dom/client"]
-  )
-  .then((importMap) => {
-    ESModularize.build(importMap);
-  });
+}).load(
+  {
+    react: "latest",
+    "react-dom": "latest",
+  },
+  // ["react", "react-dom/client"]
+);
+
+ESModularize.build(importMap);

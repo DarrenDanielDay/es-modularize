@@ -40,15 +40,11 @@ export const createResolve = (url: ScriptURL, host: PackageHost): NodeJS.Require
     paths: notSupported,
   };
   const resolve: Func<NodeJS.RequireResolve> = (id, options) => {
-    let resolved: string;
-    host.resolve(id, url).then((file) => {
-      if (!file) {
-        return notFound(id, url);
-      }
-      // It's synchronous, althought it seems to be executed in `Promise.then` callback.
-      resolved = file.url.url;
-      return;
-    });
+    const file = host.resolve(id, url);
+    if (!file) {
+      return notFound(id, url);
+    }
+    const resolved = file.url.url;
     return options ? warn("Options for require.resolve(id, [options]) is not used actually.", resolved!) : resolved!;
   };
   return Object.assign(resolve, resolveStatic);
@@ -104,33 +100,23 @@ export const createRequire = (url: ScriptURL, host: PackageHost): NodeJS.Require
     },
   };
   const require: Func<NodeJS.Require> = (id) => {
-    let module: NodeJS.Module;
-    host.resolve(id, url).then((file) => {
-      if (!file) {
-        return notFound(id, url);
-      }
-      const cached = cache[file.url.url];
-      if (cached) {
-        // It's synchronous, althought it seems to be executed in `Promise.then` callback.
-        module = cached;
-        return;
-      }
-      switch (file.format) {
-        case ESModuleFileType.JSON:
-          // It's synchronous, althought it seems to be executed in `Promise.then` callback.
-          module = loadJSONModule(file, host);
-          break;
-        case ESModuleFileType.Script:
-          // It's synchronous, althought it seems to be executed in `Promise.then` callback.
-          module = loadCJSModule(file, host);
-          break;
-        default:
-          // ECMA module script cannot be loaded by `require`.
-          return notSupported();
-      }
-      return;
-    });
-    return module!.exports;
+    const file = host.resolve(id, url);
+    if (!file) {
+      return notFound(id, url);
+    }
+    const cached = cache[file.url.url];
+    if (cached) {
+      return cached.exports;
+    }
+    switch (file.format) {
+      case ESModuleFileType.JSON:
+        return loadJSONModule(file, host).exports;
+      case ESModuleFileType.Script:
+        return loadCJSModule(file, host).exports;
+      default:
+        // ECMA module script cannot be loaded by `require`.
+        return notSupported();
+    }
   };
   return Object.assign(require, requireStatic);
 };

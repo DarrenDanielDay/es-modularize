@@ -1,35 +1,33 @@
 import { globalEvaluatedVariable } from "./constants";
 import type { FS, ScriptURL } from "./core";
 import { createNetReader } from "./net";
-import { performAs, trimSlash } from "./utils";
+import { trimSlash } from "./utils";
 
-export const createBrowserFS = (cdnRoot = "https://unpkg.com", async = false): FS => {
+export const createBrowserFS = (cdnRoot = "https://unpkg.com"): FS => {
   cdnRoot = trimSlash(cdnRoot);
-  const net = createNetReader(window.fetch, async);
-  const read: FS["read"] = performAs((resume, url) => {
+  const net = createNetReader(window.fetch);
+  const read: FS["read"] = (url) => {
     const requestURL = resolveRequestURL(url);
-    net.read(requestURL).then((response) => {
-      if (!response) {
-        return resume(null);
-      }
-      const { content, contentType } = response;
-      if (typeof content !== "string" /** invalid script content */) {
-        return resume(null);
-      }
-      return resume({
-        content,
-        contentType,
-        redirected: response.url !== requestURL,
-        url,
-      });
-    });
-  });
+    const response = net.read(requestURL);
+    if (!response) {
+      return null;
+    }
+    const { content, contentType } = response;
+    if (typeof content !== "string" /** invalid script content */) {
+      return null;
+    }
+    return {
+      content,
+      contentType,
+      redirected: response.url !== requestURL,
+      url,
+    };
+  };
   const resolveRequestURL = (url: ScriptURL) => {
     return url.url;
   };
   return {
     root: cdnRoot,
-    sync: !async,
     read,
   };
 };

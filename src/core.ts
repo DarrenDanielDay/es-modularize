@@ -1,6 +1,6 @@
 import type path from "path-browserify";
 import { scopeTag, selfReference, slash } from "./constants";
-import { die, type Perform } from "./utils";
+import { die } from "./utils";
 
 export enum ESModuleFileType {
   JSON = "json",
@@ -118,17 +118,15 @@ export type ESModuleFile = SourceFile & {
 export type FS = {
   /** root path */
   root: string;
-  /** sync */
-  sync: boolean;
   /** read */
-  read: Perform<[url: ScriptURL], SourceFile | null>;
+  read(url: ScriptURL): SourceFile | null;
 };
 
 export type PackageHost = {
   /** resolve require id */
-  resolve: Perform<[id: string, currentURL: ScriptURL], ESModuleFile | null>;
+  resolve(id: string, currentURL: ScriptURL): ESModuleFile | null;
   /** resolve package */
-  resolvePackage: Perform<[spec: PackageSpec], PackageMeta | null>;
+  resolvePackage(spec: PackageSpec): PackageMeta | null;
   /** create url */
   createURL: (pkg: PackageMeta, subpath: string) => ScriptURL;
   /** create anonymous url for project itself */
