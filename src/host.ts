@@ -1,4 +1,5 @@
 import path from "path-browserify";
+import { rawRecursive } from "taio/esm/libs/custom/algorithms/recursive.mjs";
 import { latest, relativeTo, selfReference } from "./constants";
 import {
   type FS,
@@ -13,16 +14,27 @@ import {
   type ESModuleFile,
   type PackageMetaWithExports,
   accessExport,
+  type PackageSpec,
   type ExportAddOn,
   type DependencyAddOn,
   type ExportMapping,
   type StaticExportMapping,
+  packageId,
 } from "./core";
 import { notFound, notSupported } from "./errors";
 import type { PackageRegistry } from "./registry";
 import { die, isRelative, warn } from "./utils";
-const getRefSubpath = (ref: ExportReference) =>
-  typeof ref === "string" ? ref : ref.import ?? ref.browser ?? ref.worker ?? ref.require ?? ref.default;
+const exportReferenceNotSupported = (ref: ExportReference) =>
+  notSupported(`Cannot find export subpath: ${JSON.stringify(ref)}`);
+const getRefSubpath = (ref: ExportReference): string => {
+  if (typeof ref === "string") {
+    return ref;
+  }
+  if (Array.isArray(ref)) {
+    return getRefSubpath(ref.find((r) => getRefSubpath(r)) ?? exportReferenceNotSupported(ref));
+  }
+  return ref.import ?? ref.browser ?? ref.worker ?? ref.require ?? ref.default ?? exportReferenceNotSupported(ref);
+};
 export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHost => {
   const resolveAsFile = (url: ScriptURL): ESModuleFile | null => {
     const { ext } = url.parsed;
@@ -48,18 +60,47 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
     }
     return null;
   };
-
-  const resolvePackage: PackageHost["resolvePackage"] = (spec) => {
-    const packageJSON = registry.resolve(spec);
-    if (!packageJSON) {
-      return null;
+  const resolveCache: Record<string, PackageMeta> = {};
+  const resolvePackage: PackageHost["resolvePackage"] = rawRecursive<[spec: PackageSpec], PackageMeta | null>(
+    function* (spec) {
+      const { name, specifier } = spec;
+      const id = packageId(name, specifier);
+      const cached = resolveCache[id];
+      if (cached) {
+        return cached;
+      }
+      const packageJSON = registry.resolve(spec);
+      if (!packageJSON) {
+        return null;
+      }
+      const meta: PendingPackageMeta = {
+        packageJSON,
+      };
+      // @ts-expect-error later updated type
+      resolveCache[id] = meta;
+      const withExports = resolveExports(packageJSON, meta);
+      const fullDeps = {
+        // ...packageJSON.devDependencies,
+        ...packageJSON.peerDependencies,
+        ...packageJSON.dependencies,
+      };
+      const depsArray: [string, PackageMeta][] = [];
+      for (const [name, specifier] of Object.entries(fullDeps)) {
+        const meta = yield this.call({
+          name,
+          specifier,
+        });
+        depsArray.push(
+          meta
+            ? [name, meta]
+            : die(`Cannot resolve dependency "${packageId(name, specifier)}" for ${withExports.packageJSON.name}`)
+        );
+      }
+      return Object.assign<PackageMetaWithExports, DependencyAddOn>(withExports, {
+        deps: Object.fromEntries(depsArray),
+      });
     }
-    const meta: PendingPackageMeta = {
-      packageJSON,
-    };
-    const withExports = resolveExports(packageJSON, meta);
-    return resolveDependencies(withExports);
-  };
+  );
   const requireResolveCache: Record<string, ESModuleFile> = {};
   const requireResolveCacheKey = (id: string, url: ScriptURL) =>
     `${url.packageMeta.packageJSON.name}@${url.packageMeta.packageJSON.version} | ${url.parsed.dir} => ${id}`;
@@ -117,7 +158,7 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
       typeof exports === "string"
         ? [[selfReference, exports]]
         : Array.isArray(exports)
-        ? exports.map((ref) => [getRefSubpath(ref)!, ref])
+        ? exports.map((ref) => [getRefSubpath(ref), ref])
         : Object.entries(exports ?? { [selfReference]: main ?? "./index.js" });
     for (const [subpath, ref] of exportsObject) {
       // glob patterns
@@ -128,7 +169,7 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
         });
       } else {
         // @ts-expect-error later updated type
-        const staticResolvedURL = createURL(pendingPackageMeta, getRefSubpath(ref) ?? notSupported());
+        const staticResolvedURL = createURL(pendingPackageMeta, getRefSubpath(ref));
         staticMapping[path.join(name, subpath)] = staticResolvedURL;
       }
     }
@@ -142,30 +183,12 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
         return undefined;
       }
       // @ts-expect-error later updated type
-      return createURL(pendingPackageMeta, getRefSubpath(match.ref) ?? notSupported());
+      return createURL(pendingPackageMeta, getRefSubpath(match.ref));
     };
     return Object.assign<PendingPackageMeta, ExportAddOn>(pendingPackageMeta, {
       exportMapping: mapping,
       staticMapping,
     });
-  };
-  const resolveDependencies = (withExports: PackageMetaWithExports) => {
-    const packageJSON = withExports.packageJSON;
-    const fullDeps = {
-      // ...packageJSON.devDependencies,
-      ...packageJSON.peerDependencies,
-      ...packageJSON.dependencies,
-    };
-    const depsArray = Object.entries(fullDeps).map(([name, specifier]) => {
-      const meta = resolvePackage({
-        name,
-        specifier,
-      });
-      return meta
-        ? [name, meta]
-        : die(`Cannot resolve dependency "${name}@${specifier}" for ${withExports.packageJSON.name}`);
-    });
-    return Object.assign<PackageMetaWithExports, DependencyAddOn>(withExports, { deps: Object.fromEntries(depsArray) });
   };
   const createURL: PackageHost["createURL"] = (pkg, subpath) => ({
     url: `${fs.root}/${pkg.packageJSON.name}@${pkg.packageJSON.version}/${subpath.replace(/^\.\//, "")}`,

@@ -15,6 +15,8 @@ export type PackageSpec = {
   specifier: string;
 };
 
+export const packageId = (name: string, specifier: string) => `${name}${scopeTag}${specifier}`;
+
 export type Dependencies = { [packageName: string]: string };
 
 export type PlatformExportPath = Record<
@@ -22,7 +24,7 @@ export type PlatformExportPath = Record<
   `./${string}` | undefined
 >;
 
-export type ExportReference = string | PlatformExportPath;
+export type ExportReference = string | PlatformExportPath | Array<string | PlatformExportPath>;
 
 export type Exports =
   /** single main export */

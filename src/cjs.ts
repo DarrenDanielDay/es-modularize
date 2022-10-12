@@ -1,5 +1,5 @@
 import { type ESModuleFile, ESModuleFileType, type PackageHost, type ScriptURL } from "./core";
-import { notFound, notSupported } from "./errors";
+import { noSupport, notFound, notSupported } from "./errors";
 import { type Func, proxyGlobalVariableForCode, type Static, trimSlash, virgin, warn } from "./utils";
 
 export interface ModuleExports {
@@ -72,13 +72,22 @@ export const loadCJSModule = (file: ESModuleFile, host: PackageHost): NodeJS.Mod
       url: __filename,
       parsed: { base },
     } = url;
-    createCJSFactory(content, {
+    const factory = createCJSFactory(content, {
       __dirname: trimSlash(__filename.replace(base, "")),
       __filename,
       exports,
       module,
       require,
-    })();
+    });
+    try {
+      factory();
+    } catch (error) {
+      console.warn(
+        `Failed to load "${file.url.url}" due to the following error.\
+Code referencing this package may not work currectly.`,
+        error
+      );
+    }
   });
 
 export const loadJSONModule = (file: ESModuleFile, host: PackageHost): NodeJS.Module =>
@@ -94,9 +103,9 @@ export const createRequire = (url: ScriptURL, host: PackageHost): NodeJS.Require
     main: undefined,
     resolve,
     extensions: {
-      ".js": notSupported,
-      ".json": notSupported,
-      ".node": notSupported,
+      ".js": noSupport,
+      ".json": noSupport,
+      ".node": noSupport,
     },
   };
   const require: Func<NodeJS.Require> = (id) => {
