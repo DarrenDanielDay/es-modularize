@@ -115,15 +115,14 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
   const resolveExports = performAs(
     (resume: Resume<PackageMetaWithExports>, packageJSON: PackageJSON, pendingPackageMeta: PendingPackageMeta) => {
       const { name, exports, main } = packageJSON;
-      // Currently only support object exports/main field.
-      // TODO: Full support for exports/main field.
-      if (typeof exports === "string" || Array.isArray(exports)) {
-        return notSupported();
-      }
-
       const staticMapping: StaticExportMapping = {};
       const dynamicMappings: { pattern: RegExp; ref: ExportReference }[] = [];
-      const exportsObject = Object.entries(exports ?? { [selfReference]: main ?? "./index.js" });
+      const exportsObject: [string, ExportReference][] =
+        typeof exports === "string"
+          ? [[selfReference, exports]]
+          : Array.isArray(exports)
+          ? exports.map((ref) => [getRefSubpath(ref)!, ref])
+          : Object.entries(exports ?? { [selfReference]: main ?? "./index.js" });
       for (const [subpath, ref] of exportsObject) {
         // glob patterns
         if (subpath.includes("*")) {
