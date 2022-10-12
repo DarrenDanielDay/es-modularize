@@ -7,7 +7,8 @@ export type Func<T extends (...args: readonly never[]) => unknown> = (
 ) => ReturnType<T>;
 export type DeepPartial<T> = T extends string | number | boolean | undefined | null | symbol | bigint
   ? T
-  : T extends Static<infer S> & Func<infer F> ? DeepPartial<S> & F
+  : T extends Static<infer S> & Func<infer F>
+  ? DeepPartial<S> & F
   : { -readonly [K in keyof T]?: DeepPartial<T[K]> };
 
 export const die = (message?: string, ErrorCtor: new (message?: string) => Error = Error) => {
@@ -28,6 +29,7 @@ export const create = <C extends new (...args: never[]) => unknown>(
 
 export const virgin = () => Object.create(null);
 
+export const getStringTag = (content: unknown) => Object.prototype.toString.call(content);
 export type Resume<R> = (result: R) => void;
 
 export type Performed<R> = {

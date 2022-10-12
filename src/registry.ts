@@ -1,6 +1,6 @@
 import type { PackageJSON, PackageSpec } from "./core";
 import type { NetReader } from "./net";
-import { Perform, performAs, trimSlash } from "./utils";
+import { die, getStringTag, Perform, performAs, trimSlash } from "./utils";
 import { maxSatisfying, SemVer } from "semver";
 import { latest } from "./constants";
 export type PackageRegistry = {
@@ -23,7 +23,7 @@ export const createPackageRegistry = (net: NetReader, registry = "https://regist
     net.read(`${registry}/${target}`).then((response) => {
       const content = response?.content;
       if (typeof content !== "string") {
-        return resume(null);
+        return die(`Invalid registry response content, got ${getStringTag(content)}`);
       }
       try {
         let data = JSON.parse(content);
@@ -31,8 +31,8 @@ export const createPackageRegistry = (net: NetReader, registry = "https://regist
           // Skip package.json checkes
           return resume(data);
         }
-        if (!data || data.error) {
-          return resume(null);
+        if (data.error) {
+          return die(`The registry server responded an error: ${JSON.stringify(data.error)}`);
         }
         // Part of `package-json`.
         //#region https://github.com/sindresorhus/package-json/blob/main/index.js#L85
@@ -54,12 +54,14 @@ export const createPackageRegistry = (net: NetReader, registry = "https://regist
             const versions = Object.keys(data.versions);
             version = maxSatisfying(versions, version);
             if (!version) {
-              return resume(null);
+              return die(
+                `Cannot find version satisfying ${specifier}. Available versions are: ${versions.join(", ")}.`
+              );
             }
           }
           data = data.versions[version];
           if (!data) {
-            return resume(null);
+            return die(`Cannot find version info of ${version} in registry versions.`);
           }
           // Skip package.json checkes
           return resume(data);
