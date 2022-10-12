@@ -14,6 +14,9 @@ function App() {
         <a className="App-link" href="https://reactjs.org" target="_blank" rel="noopener noreferrer">
           Learn React
         </a>
+        <a className="App-link" href="./full-load" target="_blank">
+          Full load demo (very slow)
+        </a>
       </header>
     </div>
   );
