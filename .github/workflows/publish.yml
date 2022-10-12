@@ -31,5 +31,4 @@ jobs:
       - name: Publish NPM Package
         uses: JS-DevTools/npm-publish@v1
         with:
-          tag: legacy
           token: ${{ secrets.NPM_TOKEN }}
