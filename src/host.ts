@@ -1,5 +1,5 @@
 import path from "path-browserify";
-import { selfReference } from "./constants";
+import { relativeTo, selfReference } from "./constants";
 import {
   type FS,
   type PackageHost,
@@ -16,11 +16,14 @@ import {
   accessExport,
   ExportAddOn,
   DependencyAddOn,
+  ExportMapping,
+  StaticExportMapping,
 } from "./core";
 import { notFound, notSupported } from "./errors";
 import type { PackageRegistry } from "./registry";
 import { chainPerform, die, isRelative, performAll, performAs, Resume, warn } from "./utils";
-
+const getRefSubpath = (ref: ExportReference) =>
+  typeof ref === "string" ? ref : ref.import ?? ref.browser ?? ref.worker ?? ref.require ?? ref.default;
 export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHost => {
   const resolveAsFile = performAs((resume: Resume<ESModuleFile | null>, url: ScriptURL) => {
     const { ext } = url.parsed;
@@ -117,16 +120,38 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
       if (typeof exports === "string" || Array.isArray(exports)) {
         return notSupported();
       }
-      const getRefSubpath = (ref: ExportReference) =>
-        typeof ref === "string" ? ref : ref.import ?? ref.browser ?? ref.worker ?? ref.require ?? ref.default;
-      const mapping = Object.fromEntries(
-        Object.entries(exports ?? { [selfReference]: main ?? "./index.js" }).map(([subpath, ref]) => [
-          path.join(name, subpath),
+
+      const staticMapping: StaticExportMapping = {};
+      const dynamicMappings: { pattern: RegExp; ref: ExportReference }[] = [];
+      const exportsObject = Object.entries(exports ?? { [selfReference]: main ?? "./index.js" });
+      for (const [subpath, ref] of exportsObject) {
+        // glob patterns
+        if (subpath.includes("*")) {
+          dynamicMappings.push({
+            pattern: new RegExp(subpath.replace("*", ".+?")),
+            ref,
+          });
+        } else {
           // @ts-expect-error later updated type
-          createURL(pendingPackageMeta, getRefSubpath(ref) ?? notSupported()),
-        ])
+          const staticResolvedURL = createURL(pendingPackageMeta, getRefSubpath(ref) ?? notSupported());
+          staticMapping[path.join(name, subpath)] = staticResolvedURL;
+        }
+      }
+      const mapping: ExportMapping = (id) => {
+        if (id in staticMapping) {
+          return staticMapping[id];
+        }
+        const relativePath = id.replace(new RegExp(`^${name}`), relativeTo);
+        const match = dynamicMappings.find(({ pattern }) => relativePath.match(pattern));
+        if (!match) {
+          return undefined;
+        }
+        // @ts-expect-error later updated type
+        return createURL(pendingPackageMeta, getRefSubpath(match.ref) ?? notSupported());
+      };
+      return resume(
+        Object.assign<PendingPackageMeta, ExportAddOn>(pendingPackageMeta, { exportMapping: mapping, staticMapping })
       );
-      return resume(Object.assign<PendingPackageMeta, ExportAddOn>(pendingPackageMeta, { exportMapping: mapping }));
     }
   );
   const resolveDependencies = performAs((resume: Resume<PackageMeta>, withExports: PackageMetaWithExports) => {
@@ -164,7 +189,8 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
   const createAnonymousURL: PackageHost["createAnonymousURL"] = (subpath, deps, tag) =>
     createURL(
       {
-        exportMapping: {},
+        exportMapping: () => undefined,
+        staticMapping: {},
         packageJSON: {
           name: `<internal: ${tag ?? "the project"}>`,
           version: "0.0.0",

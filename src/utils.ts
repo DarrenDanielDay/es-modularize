@@ -1,3 +1,5 @@
+import { parentTo, relativeTo } from "./constants";
+
 export type Static<T extends {}> = Pick<T, keyof T>;
 export type Func<T extends (...args: readonly never[]) => unknown> = (
   this: ThisParameterType<T>,
@@ -91,7 +93,7 @@ export const performAll = <P extends readonly unknown[], R>(
   return _perform();
 };
 
-export const isRelative = (path: string) => path.startsWith("./") || path.startsWith("../");
+export const isRelative = (path: string) => path.startsWith(relativeTo) || path.startsWith(parentTo);
 export const trimSlash = (path: string) => path.replace(/[\\\/]$/, "");
 
 export const proxyGlobalVariableForCode =

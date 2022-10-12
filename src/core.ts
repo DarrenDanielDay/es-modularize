@@ -32,17 +32,18 @@ export type Exports =
   /** isomorphic exports */
   | Array<ExportReference>;
 
-export type ExportMapping = Record<
+export type StaticExportMapping = Record<
   /**
    * full package path, such as `reac-dom/client`
    */
   string,
   ScriptURL | undefined
 >;
-/** Currently only support static mapping */
-// | ((specifier: string) => ScriptURL | undefined);
 
-export const accessExport = (mapping: ExportMapping, id: string) => mapping[id];
+/** Static mapping does cause performance issues. Now only function is used. */
+export type ExportMapping = (specifier: string) => ScriptURL | undefined;
+
+export const accessExport = (mapping: ExportMapping, id: string) => mapping(id);
 
 export interface PackageJSON {
   name: string;
@@ -63,6 +64,8 @@ export type PendingPackageMeta = {
 export type ResolvedDependencies = Record<string, PackageMeta>;
 
 export type ExportAddOn = {
+  /** export mapping */
+  staticMapping: StaticExportMapping;
   /** export mapping */
   exportMapping: ExportMapping;
 };

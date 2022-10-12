@@ -34,7 +34,7 @@ export const createProjectLoader = (host: PackageHost, config?: ProjectLoaderCon
       const resolvedDependencies = Object.fromEntries(resolvedEntries);
       const projectURL = host.createAnonymousURL("./index.js", resolvedDependencies);
       performAll(
-        resolvedEntries.flatMap(([, meta]) => Object.entries(meta.exportMapping)),
+        resolvedEntries.flatMap(([, meta]) => Object.entries(meta.staticMapping)),
         performAs((resume: Resume<[path: string, importURL: string][]>, importPath, url) => {
           if (loadOnly && !loadOnly.includes(importPath)) {
             return resume([]);
@@ -51,6 +51,8 @@ export const createProjectLoader = (host: PackageHost, config?: ProjectLoaderCon
               }
               case ESModuleFileType.JSON:
                 return resume([[importPath, createBlob(file.content, "application/json")]]);
+              case ESModuleFileType.Module:
+                return resume([[importPath, file.url.url]]);
               default:
                 break;
             }
