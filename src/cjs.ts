@@ -104,14 +104,16 @@ export const createRequire = (url: ScriptURL, host: PackageHost): NodeJS.Require
     },
   };
   const require: Func<NodeJS.Require> = (id) => {
-    const cached = cache[id];
-    if (cached) {
-      return cached.exports;
-    }
     let module: NodeJS.Module;
     host.resolve(id, url).then((file) => {
       if (!file) {
         return notFound(id, url);
+      }
+      const cached = cache[file.url.url];
+      if (cached) {
+        // It's synchronous, althought it seems to be executed in `Promise.then` callback.
+        module = cached;
+        return;
       }
       switch (file.format) {
         case ESModuleFileType.JSON:
