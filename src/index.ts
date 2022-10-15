@@ -43,7 +43,7 @@ const _ESModularize = {
       async async() {
         const s = document.createElement("script");
         s.src = path;
-        document.body.appendChild(s);
+        (document.body ?? document.head).appendChild(s);
         await new Promise<void>((resolve) => {
           const handler = () => {
             s.removeEventListener("load", handler);
@@ -76,7 +76,7 @@ const _ESModularize = {
     if (firstScript) {
       firstScript.after(importmap);
     } else {
-      document.body.appendChild(importmap);
+      (document.body ?? document.head).appendChild(importmap);
     }
   },
 };
