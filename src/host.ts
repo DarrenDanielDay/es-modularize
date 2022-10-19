@@ -1,6 +1,6 @@
 import path from "path-browserify";
 import { rawRecursive } from "taio/esm/libs/custom/algorithms/recursive.mjs";
-import { latest, relativeTo, selfReference } from "./constants";
+import { definitelyTypedLibPrefix, jsExt, latest, mjsExt, relativeTo, selfReference } from "./constants";
 import {
   type FS,
   type PackageHost,
@@ -33,17 +33,22 @@ const getRefSubpath = (ref: ExportReference): string => {
   if (Array.isArray(ref)) {
     return getRefSubpath(ref.find((r) => getRefSubpath(r)) ?? exportReferenceNotSupported(ref));
   }
-  return ref.import ?? ref.browser ?? ref.worker ?? ref.require ?? ref.default ?? exportReferenceNotSupported(ref);
+  return ref.browser ?? ref.worker ?? ref.import ?? ref.require ?? ref.default ?? exportReferenceNotSupported(ref);
 };
 export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHost => {
   const resolveAsFile = (url: ScriptURL): ESModuleFile | null => {
     const { ext } = url.parsed;
+    const isModule = url.packageMeta.packageJSON.type === "module";
     const targetSuffixes: [string, ESModuleFileType][] = [
       [
         "",
-        ext === ".mjs" ? ESModuleFileType.Module : ext === ".json" ? ESModuleFileType.JSON : ESModuleFileType.Script,
+        ext === mjsExt || (ext === jsExt && isModule)
+          ? ESModuleFileType.Module
+          : ext === ".json"
+          ? ESModuleFileType.JSON
+          : ESModuleFileType.Script,
       ],
-      [".js", url.packageMeta.packageJSON.type === "module" ? ESModuleFileType.Module : ESModuleFileType.Script],
+      [".js", isModule ? ESModuleFileType.Module : ESModuleFileType.Script],
       [".json", ESModuleFileType.JSON],
     ];
     for (const [resolvedURL, type] of targetSuffixes.map<[ScriptURL, ESModuleFileType]>(([suffix, type]) => [
@@ -86,6 +91,10 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
       };
       const depsArray: [string, PackageMeta][] = [];
       for (const [name, specifier] of Object.entries(fullDeps)) {
+        if (name.startsWith(definitelyTypedLibPrefix)) {
+          // Skip `@types/<pkg>` resolve.
+          continue;
+        }
         const meta = yield this.call({
           name,
           specifier,
