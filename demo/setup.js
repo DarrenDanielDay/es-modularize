@@ -10,10 +10,11 @@ const importMap = ESModularize.createProjectLoader({
   },
 }).load(
   {
-    react: "latest",
-    "react-dom": "latest",
+    react: "18.2.0",
+    "react-dom": "18.2.0",
+    "func-di": "1.4.2",
   },
-  ["react", "react-dom/client"]
+  ["react", "react-dom/client", "func-di"]
 );
-
+console.log(importMap);
 ESModularize.build(importMap);

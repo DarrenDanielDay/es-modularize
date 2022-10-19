@@ -12,6 +12,7 @@ const fullMap = ESModularize.createProjectLoader({
   {
     react: "latest",
     "react-dom": "latest",
+    "func-di": "latest"
   },
   // Without the following parameter, all dependencies will be loaded!
   // ["react", "react-dom/client"]

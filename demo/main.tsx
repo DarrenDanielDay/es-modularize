@@ -1,8 +1,9 @@
 /// <reference types="react" />
 /// <reference types="react-dom" />
-import React from "react";
+/// <reference path="./injected.d.ts" />
 import ReactDOM from "react-dom/client";
-
+import { inject } from "func-di";
+console.log(inject);
 function App() {
   return (
     <div className="App">
