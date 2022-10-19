@@ -6,7 +6,9 @@
 
 [English](../README.md) | 简体中文
 
-一个仅浏览器可用的用于转换npm包为`ES module`的工具库。
+一个仅浏览器可用的用于转换`npm`包为`ES module`的工具库。
+
+使用您的浏览器`devtools`来探索此[在线示例](https://darrendanielday.github.io/es-modularize)并了解此工具库如何解析，下载并加载`npm`包。
 
 ## 简介
 
@@ -28,7 +30,7 @@ import ReactDOM from "react-dom/client";
 
 和编译转换工具不同的是，`es-modularize`不会做任何代码的解析与转换。引入的依赖代码会在浏览器内被执行，并根据求得的导出值生成代理的`ES Module`脚本。
 
-运行最小的示例，您只需要一个静态资源服务器，完全可以不使用NodeJS工具链。剩下的工作，都将在浏览器内完成执行。
+运行最小的示例，您只需要一个静态资源服务器，完全可以不使用 NodeJS 工具链。剩下的工作，都将在浏览器内完成执行。
 
 目前仅支持 `UMD`和 `CJS`包。对于`importmap`的浏览器支持，你可能需要这个工具：
 
@@ -39,7 +41,7 @@ import ReactDOM from "react-dom/client";
 首先，通过外部脚本链接引入这个库：
 
 ```html
-<script src="https://unpkg.com/es-modularize@1.1.0/dist/browser.bundle.min.js"></script>
+<script src="https://unpkg.com/es-modularize@latest/dist/browser.bundle.min.js"></script>
 ```
 
 UMD 示例:

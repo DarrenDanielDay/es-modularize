@@ -6,7 +6,9 @@
 
 English | [简体中文](./README.zh-CN.md)
 
-A browser only tool for converting npm package to `ES module`.
+A browser only tool for converting `npm` package to `ES module`.
+
+Explore this [online demo](https://darrendanielday.github.io/es-modularize) with `devtools` of your browser to see how this tool resolve, download and load `npm` packages.
 
 ## Introduction
 
@@ -39,7 +41,7 @@ Currently only `UMD` and `CJS` packages are supported. For browser `importmap` s
 First, include this library via external script link:
 
 ```html
-<script src="https://unpkg.com/es-modularize@1.1.0/dist/browser.bundle.min.js"></script>
+<script src="https://unpkg.com/es-modularize@latest/dist/browser.bundle.min.js"></script>
 ```
 
 UMD example:
