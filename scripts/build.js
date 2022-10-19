@@ -5,7 +5,8 @@ import { simplifyGlobalAPI } from "esbuild-plugin-global-api";
 import { resolve } from "path";
 import { readFile, writeFile } from "fs/promises";
 const isDev = !process.argv.includes("--prod");
-const outfile = isDev ? "./demo/index.js" : "./dist/browser.bundle.min.js";
+const isForDemo = process.argv.includes("--demo");
+const outfile = isDev || isForDemo ? "./demo/index.js" : "./dist/browser.bundle.min.js";
 await esbuild.build({
   entryPoints: ["./src/index.ts"],
   format: "iife",

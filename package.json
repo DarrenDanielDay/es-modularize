@@ -9,7 +9,7 @@
     "start:serve": "open-cli http://localhost:3001 && serve demo -p 3001",
     "start:watch": "node ./scripts/build.js",
     "start:demo": "node ./scripts/build.demo.js",
-    "build:demo": "node ./scripts/build.demo.js --prod",
+    "build:demo": "node ./scripts/build.demo.js --prod && node ./scripts/build.js --prod --demo",
     "build": "concurrently npm:build:*",
     "build:node": "ts-esmbuilder",
     "build:browser": "node ./scripts/build.js --prod"
