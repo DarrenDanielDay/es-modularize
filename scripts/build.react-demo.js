@@ -5,9 +5,10 @@ import { simplifyGlobalAPI, defaultApplyTo } from "esbuild-plugin-global-api";
 import { resolve } from "path";
 import { readFile, writeFile } from "fs/promises";
 const isDev = !process.argv.includes("--prod");
-const outfile = "./demo/main.js";
+//#region react demo
+const outfile = "./demo/react/main.js";
 await esbuild.build({
-  entryPoints: ["./demo/main.tsx"],
+  entryPoints: ["./demo/react/main.tsx"],
   format: "esm",
   platform: "browser",
   minify: !isDev,
@@ -50,3 +51,4 @@ if (!isDev) {
   }
   await writeFile(distFile, code);
 }
+//#endregion

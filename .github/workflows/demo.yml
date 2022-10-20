@@ -30,7 +30,9 @@ jobs:
         run: npm install
 
       - name: Build Project
-        run: npm run build:demo
+        run: npm run build
+        env:
+          PUBLIC_URL: "/es-modularize"
 
       - name: Deploy Github Pages
         uses: crazy-max/ghaction-github-pages@v2.5.0

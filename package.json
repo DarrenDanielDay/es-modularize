@@ -8,9 +8,12 @@
     "start": "concurrently npm:start:*",
     "start:serve": "open-cli http://localhost:3001 && serve demo -p 3001",
     "start:watch": "node ./scripts/build.js",
-    "start:demo": "node ./scripts/build.demo.js",
-    "build:demo": "node ./scripts/build.demo.js --prod && node ./scripts/build.js --prod --demo",
+    "start:anular-demo": "node ./scripts/build.angular-demo.js",
+    "start:react-demo": "node ./scripts/build.react-demo.js",
     "build": "concurrently npm:build:*",
+    "build:angular-demo": "node ./scripts/build.angular-demo.js --prod",
+    "build:react-demo": "node ./scripts/build.react-demo.js --prod && node ./scripts/build.js --prod --demo",
+    "build:github-pages": "node ./scripts/build.github-pages.js",
     "build:node": "ts-esmbuilder",
     "build:browser": "node ./scripts/build.js --prod"
   },
@@ -40,6 +43,7 @@
     "src"
   ],
   "devDependencies": {
+    "@angular/compiler-cli": "^14.2.7",
     "@types/node": "^18.7.23",
     "@types/path-browserify": "^1.0.0",
     "@types/react": "^18.0.21",
@@ -55,6 +59,8 @@
     "typescript": "^4.8.3"
   },
   "dependencies": {
+    "@angular/core": "^14.2.7",
+    "@angular/platform-browser-dynamic": "^14.2.7",
     "esbuild-plugin-global-api": "^0.2.2",
     "func-di": "^1.4.0",
     "path-browserify": "^1.0.1",

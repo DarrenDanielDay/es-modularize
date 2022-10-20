@@ -17,7 +17,7 @@ await esbuild.build({
   bundle: true,
   outfile,
   sourcemap: true,
-  plugins: [simplifyGlobalAPI()],
+  plugins: isDev ? [] : [simplifyGlobalAPI()],
 });
 
 if (!isDev) {

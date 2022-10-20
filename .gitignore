@@ -1,8 +1,7 @@
 # For this project
-demo/index.js
-demo/index.js.map
-demo/main.js
-demo/main.js.map
+demo/**/*.js
+demo/**/*.js.map
+!demo/**/setup*.js
 
 # Logs
 logs
