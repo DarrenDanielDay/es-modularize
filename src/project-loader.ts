@@ -1,3 +1,4 @@
+import { rawRecursiveGenerator } from "taio/esm/libs/custom/algorithms/recursive.mjs";
 import { createBlob, createESMProxyScript } from "./browser";
 import { loadCJSModule } from "./cjs";
 import { type Dependencies, ESModuleFileType, type ImportMapJSON, type PackageHost, type PackageMeta } from "./core";
@@ -36,11 +37,24 @@ export type ProjectLoaderConfig = Partial<{
 export const createProjectLoader = (host: PackageHost, config?: ProjectLoaderConfig): ProjectLoader => {
   const load: ProjectLoader["load"] = (deps, loadOnly) => {
     Object.assign(globalThis, config?.nodeGlobals);
-    const entries = Object.entries(deps).map(([name, specifier]) => {
+    type TryResolvedEntry = [string, PackageMeta | null];
+    type ResolvedEntry = [pkg: string, meta: PackageMeta];
+    const entries = Object.entries(deps).map<TryResolvedEntry>(([name, specifier]) => {
       const meta = host.resolvePackage({ name, specifier });
       return [name, meta];
     });
-    const resolvedEntries = entries.filter((e): e is [pkg: string, meta: PackageMeta] => !!e[1]);
+    const visited = new Set<PackageMeta>();
+    const flattenRecursive = rawRecursiveGenerator<[TryResolvedEntry], ResolvedEntry>(function* ([name, meta]) {
+      if (!meta || visited.has(meta)) {
+        return;
+      }
+      visited.add(meta);
+      yield this.value([name, meta]);
+      for (const entry of Object.entries(meta.deps)) {
+        yield this.sequence(entry);
+      }
+    });
+    const resolvedEntries = entries.flatMap((e) => [...flattenRecursive(e)]);
     const resolvedDependencies = Object.fromEntries(resolvedEntries);
     const projectURL = host.createAnonymousURL("./index.js", resolvedDependencies);
     const groups = resolvedEntries

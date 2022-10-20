@@ -1,5 +1,5 @@
 import { globalEvaluatedVariable } from "./constants";
-import type { FS, ScriptURL } from "./core";
+import type { FS, ScriptURL, SourceFile } from "./core";
 import { createNetReader } from "./net";
 import { trimSlash } from "./utils";
 
@@ -26,9 +26,20 @@ export const createBrowserFS = (cdnRoot = "https://unpkg.com"): FS => {
   const resolveRequestURL = (url: ScriptURL) => {
     return url.url;
   };
+  const exists: FS['exists'] = (file): file is SourceFile => {
+    if (!file) {
+      return false;
+    }
+    const { contentType } = file
+    if (!contentType) {
+      return true;
+    }
+    return !contentType.match(/html|plain/)
+  }
   return {
     root: cdnRoot,
     read,
+    exists,
   };
 };
 const globalEvaluated: Record<string, unknown> = {};

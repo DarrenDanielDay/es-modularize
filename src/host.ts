@@ -1,6 +1,17 @@
 import path from "path-browserify";
 import { rawRecursive } from "taio/esm/libs/custom/algorithms/recursive.mjs";
-import { definitelyTypedLibPrefix, jsExt, latest, mjsExt, relativeTo, selfReference } from "./constants";
+import {
+  definitelyTypedLibPrefix,
+  INDEX,
+  jsExt,
+  jsonExt,
+  latest,
+  MODULE,
+  PACKAGE_JSON,
+  relativeTo,
+  selfReference,
+  slash,
+} from "./constants";
 import {
   type FS,
   type PackageHost,
@@ -20,34 +31,44 @@ import {
   type ExportMapping,
   type StaticExportMapping,
   packageId,
+  detectFormat,
+  detectDefaultFormat,
 } from "./core";
 import { notFound, notSupported } from "./errors";
 import type { PackageRegistry } from "./registry";
-import { die, isRelative, warn } from "./utils";
+import { die, isRelative, toRelative, trimSlash, warn } from "./utils";
 const exportReferenceNotSupported = (ref: ExportReference) =>
   notSupported(`Cannot find export subpath: ${JSON.stringify(ref)}`);
-const getRefSubpath = (ref: ExportReference): string => {
+const getRefSubpath = (
+  ref: ExportReference,
+  pjson: PackageJSON
+): [subpath: string, format: ESModuleFileType | null] => {
   if (typeof ref === "string") {
-    return ref;
+    const { ext } = path.parse(ref);
+    return [ref, detectFormat(pjson, ext)];
   }
   if (Array.isArray(ref)) {
-    return getRefSubpath(ref.find((r) => getRefSubpath(r)) ?? exportReferenceNotSupported(ref));
+    for (const r of ref) {
+      return getRefSubpath(r, pjson);
+    }
+    return exportReferenceNotSupported(ref);
   }
-  return ref.browser ?? ref.worker ?? ref.import ?? ref.require ?? ref.default ?? exportReferenceNotSupported(ref);
+  const { browser, worker, import: _import, require, default: _default, module, commonjs } = ref;
+  const esm = browser ?? worker ?? module ?? _import;
+  if (esm) {
+    return [esm, ESModuleFileType.Module];
+  }
+  const cjs = require ?? commonjs;
+  if (cjs) {
+    return [cjs, ESModuleFileType.Script];
+  }
+  return [_default ?? exportReferenceNotSupported(ref), null];
 };
 export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHost => {
   const resolveAsFile = (url: ScriptURL): ESModuleFile | null => {
-    const { ext } = url.parsed;
-    const isModule = url.packageMeta.packageJSON.type === "module";
+    const isModule = url.packageMeta.packageJSON.type === MODULE;
     const targetSuffixes: [string, ESModuleFileType][] = [
-      [
-        "",
-        ext === mjsExt || (ext === jsExt && isModule)
-          ? ESModuleFileType.Module
-          : ext === ".json"
-          ? ESModuleFileType.JSON
-          : ESModuleFileType.Script,
-      ],
+      ["", url.format ?? ESModuleFileType.Script],
       [".js", isModule ? ESModuleFileType.Module : ESModuleFileType.Script],
       [".json", ESModuleFileType.JSON],
     ];
@@ -56,12 +77,56 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
       type,
     ])) {
       const file = fs.read(resolvedURL);
-      if (file) {
+      if (fs.exists(file)) {
         return {
           ...file,
           format: type,
         };
       }
+    }
+    return null;
+  };
+  const resolveAsDirectory = (url: ScriptURL): ESModuleFile | null => {
+    const x = trimSlash(url.subpath);
+    const pjsonSubpath = path.join(x, PACKAGE_JSON);
+    const pjsonFile = fs.read(createURL(url.packageMeta, pjsonSubpath));
+    if (!pjsonFile) {
+      return resolveIndex(url);
+    }
+    try {
+      const json: PackageJSON = JSON.parse(pjsonFile.content);
+      const main = json.main;
+      if (!main) {
+        return resolveIndex(url);
+      }
+      const m = path.join(x, main);
+      const mUrl = createURL(url.packageMeta, m);
+      return (
+        resolveAsFile(mUrl) ??
+        resolveIndex(mUrl) ??
+        warn(`Deprecated: Resolving package index with "package.json".`, resolveIndex(url))
+      );
+    } catch (error) {
+      return resolveIndex(url);
+    }
+  };
+  const resolveIndex = (url: ScriptURL): ESModuleFile | null => {
+    const x = trimSlash(url.subpath);
+    const indexJS = createURL(url.packageMeta, `${x}/${INDEX}${jsExt}`);
+    const indexJSFile = fs.read(indexJS);
+    if (fs.exists(indexJSFile)) {
+      return {
+        ...indexJSFile,
+        format: indexJS.format ?? ESModuleFileType.Script,
+      };
+    }
+    const indexJSON = createURL(url.packageMeta, `${x}/${INDEX}${jsonExt}`);
+    const indexJSONFile = fs.read(indexJSON);
+    if (fs.exists(indexJSONFile)) {
+      return {
+        ...indexJSONFile,
+        format: indexJSON.format ?? ESModuleFileType.JSON,
+      };
     }
     return null;
   };
@@ -114,20 +179,22 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
   const requireResolveCacheKey = (id: string, url: ScriptURL) =>
     `${url.packageMeta.packageJSON.name}@${url.packageMeta.packageJSON.version} | ${url.parsed.dir} => ${id}`;
   const resolve: PackageHost["resolve"] = (id, currentURL) => {
-    const cache = requireResolveCache[requireResolveCacheKey(id, currentURL)];
+    const key = requireResolveCacheKey(id, currentURL);
+    const cache = requireResolveCache[key];
     if (cache) {
       return cache;
     }
     const resume = (result: ESModuleFile | null): ESModuleFile | null => {
       if (result) {
-        requireResolveCache[requireResolveCacheKey(id, currentURL)] = result;
+        requireResolveCache[key] = result;
       }
       return result;
     };
     if (isRelative(id)) {
       const { dir } = currentURL.parsed;
       const subpath = path.join(dir, id);
-      const file = resolveAsFile(createURL(currentURL.packageMeta, subpath));
+      const targetUrl = createURL(currentURL.packageMeta, subpath);
+      const file = resolveAsFile(targetUrl) ?? resolveAsDirectory(targetUrl);
       return file ? resume(file) : notFound(id, currentURL);
     }
     const { pkg } = resolvePackageByName(id);
@@ -137,10 +204,10 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
         return resume(null);
       }
       const exportURL = accessExport(meta.exportMapping, id);
-      if (!exportURL) {
-        return resume(null);
+      if (exportURL) {
+        return resume(resolveAsFile(exportURL));
       }
-      return resume(resolveAsFile(exportURL));
+      return resume(resolveAsFile(createURL(meta, toRelative(pkg, id))));
     };
     if (depMeta) {
       return nextSteps(depMeta);
@@ -153,23 +220,35 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
       resolvePackage({
         name: pkg,
         specifier: warn(
-          `Dependency "${pkg}" is used by "${currentURL.url}" but not specified in package.json. Using "${latest}" for dependency versioning.`,
+          `Dependency "${pkg}" is used by "${currentURL.url}" but not specified in ${PACKAGE_JSON}. Using "${latest}" for dependency versioning.`,
           latest
         ),
       })
     );
   };
   const resolveExports = (packageJSON: PackageJSON, pendingPackageMeta: PendingPackageMeta) => {
-    const { name, exports, main } = packageJSON;
+    const { name, exports, module, main } = packageJSON;
     const staticMapping: StaticExportMapping = {};
     const dynamicMappings: { pattern: RegExp; ref: ExportReference }[] = [];
-    const exportsObject: [string, ExportReference][] =
+    type ExportsEntry = [subpath: string, ref: string, format: ESModuleFileType | null];
+
+    const exportsEntries: ExportsEntry[] =
       typeof exports === "string"
-        ? [[selfReference, exports]]
+        ? [[selfReference, exports, detectDefaultFormat(packageJSON, path.parse(exports).ext)]]
         : Array.isArray(exports)
-        ? exports.map((ref) => [getRefSubpath(ref), ref])
-        : Object.entries(exports ?? { [selfReference]: main ?? "./index.js" });
-    for (const [subpath, ref] of exportsObject) {
+        ? exports.map<ExportsEntry>((ref) => {
+            const [subpath, format] = getRefSubpath(ref, packageJSON);
+            return [subpath, subpath, format];
+          })
+        : exports
+        ? Object.entries(exports).map<ExportsEntry>(([alias, ref]) => {
+            const [subpath, format] = getRefSubpath(ref, packageJSON);
+            return [alias, subpath, format];
+          })
+        : module
+        ? [[selfReference, module, ESModuleFileType.Module]]
+        : [];
+    for (const [subpath, ref, format] of exportsEntries) {
       // glob patterns
       if (subpath.includes("*")) {
         dynamicMappings.push({
@@ -177,35 +256,53 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
           ref,
         });
       } else {
-        // @ts-expect-error later updated type
-        const staticResolvedURL = createURL(pendingPackageMeta, getRefSubpath(ref));
-        staticMapping[path.join(name, subpath)] = staticResolvedURL;
+        if (subpath.endsWith(slash)) {
+          console.warn(`Invalid export path "${subpath}", ignored.`);
+          continue;
+        }
+        const importPath = path.join(name, subpath);
+        // Only the first export mapping rule applies.
+        if (!(importPath in staticMapping)) {
+          // @ts-expect-error later updated type
+          const finalMeta: PackageMeta = pendingPackageMeta;
+          const staticResolvedURL = createURL(finalMeta, ref, format);
+          staticMapping[importPath] = staticResolvedURL;
+        }
       }
     }
     const mapping: ExportMapping = (id) => {
       if (id in staticMapping) {
         return staticMapping[id];
       }
-      const relativePath = id.replace(new RegExp(`^${name}`), relativeTo);
+      const relativePath = toRelative(name, id);
       const match = dynamicMappings.find(({ pattern }) => relativePath.match(pattern));
+      // @ts-expect-error later updated type
+      const finalMeta: PackageMeta = pendingPackageMeta;
       if (!match) {
+        if (id === name && main) {
+          return createURL(finalMeta, main);
+        }
         return undefined;
       }
-      // @ts-expect-error later updated type
-      return createURL(pendingPackageMeta, getRefSubpath(match.ref));
+      return createURL(finalMeta, ...getRefSubpath(match.ref, packageJSON));
     };
     return Object.assign<PendingPackageMeta, ExportAddOn>(pendingPackageMeta, {
       exportMapping: mapping,
       staticMapping,
     });
   };
-  const createURL: PackageHost["createURL"] = (pkg, subpath) => ({
-    url: `${fs.root}/${pkg.packageJSON.name}@${pkg.packageJSON.version}/${subpath.replace(/^\.\//, "")}`,
-    subpath,
-    host,
-    packageMeta: pkg,
-    parsed: path.parse(subpath),
-  });
+  const createURL: PackageHost["createURL"] = (pkg, subpath, format) => {
+    const parsed = path.parse(subpath);
+    const { ext } = parsed;
+    return {
+      url: `${fs.root}/${pkg.packageJSON.name}@${pkg.packageJSON.version}/${subpath.replace(/^\.\/?/, "")}`,
+      subpath,
+      host,
+      packageMeta: pkg,
+      parsed,
+      format: format ?? detectFormat(pkg.packageJSON, ext),
+    };
+  };
   const createAnonymousURL: PackageHost["createAnonymousURL"] = (subpath, deps, tag) =>
     createURL(
       {

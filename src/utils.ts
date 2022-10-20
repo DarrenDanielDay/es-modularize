@@ -31,6 +31,7 @@ export const virgin = () => Object.create(null);
 
 export const getStringTag = (content: unknown) => Object.prototype.toString.call(content);
 export const isRelative = (path: string) => path.startsWith(relativeTo) || path.startsWith(parentTo);
+export const toRelative = (base: string, full: string) => full.replace(new RegExp(`^${base}/`), relativeTo);
 export const trimSlash = (path: string) => path.replace(/[\\\/]$/, "");
 
 export const proxyGlobalVariableForCode =

@@ -1,5 +1,5 @@
 import type path from "path-browserify";
-import { scopeTag, selfReference, slash } from "./constants";
+import { cjsExt, jsExt, jsonExt, mjsExt, MODULE, scopeTag, selfReference, slash } from "./constants";
 import { die } from "./utils";
 
 export enum ESModuleFileType {
@@ -20,7 +20,7 @@ export const packageId = (name: string, specifier: string) => `${name}${scopeTag
 export type Dependencies = { [packageName: string]: string };
 
 export type PlatformExportPath = Record<
-  "deno" | "browser" | "worker" | "node" | "default" | "import" | "require",
+  "browser" | "worker" | "import" | "module" | "require" | "commonjs" | "default",
   `./${string}` | undefined
 >;
 
@@ -52,6 +52,7 @@ export interface PackageJSON {
   version: string;
   type?: "commonjs" | "module";
   main?: string;
+  module?: string;
   exports?: Exports;
   dependencies?: Dependencies;
   devDependencies?: Dependencies;
@@ -99,6 +100,8 @@ export type ScriptURL = {
   host: PackageHost;
   /** package meta */
   packageMeta: PackageMeta;
+  /** detected format by url/package meta */
+  format: ESModuleFileType | null;
 };
 
 export type SourceFile = {
@@ -122,6 +125,8 @@ export type FS = {
   root: string;
   /** read */
   read(url: ScriptURL): SourceFile | null;
+  /** */
+  exists(file: SourceFile | null): file is SourceFile;
 };
 
 export type PackageHost = {
@@ -130,7 +135,7 @@ export type PackageHost = {
   /** resolve package */
   resolvePackage(spec: PackageSpec): PackageMeta | null;
   /** create url */
-  createURL: (pkg: PackageMeta, subpath: string) => ScriptURL;
+  createURL: (pkg: PackageMeta, subpath: string, format?: ESModuleFileType | null) => ScriptURL;
   /** create anonymous url for project itself */
   createAnonymousURL: (subpath: string, deps: ResolvedDependencies, tag?: string) => ScriptURL;
 };
@@ -185,3 +190,17 @@ export const resolvePackageByName = (packageSpecifier: string): UnresolvedScript
     subpath: packageSubpath || selfReference,
   };
 };
+
+export const detectFormat = (json: PackageJSON, ext: string): ESModuleFileType | null => {
+  const isModule = json.type === MODULE;
+  return (isModule && ext === jsExt) || ext === mjsExt
+    ? ESModuleFileType.Module
+    : ext === cjsExt
+    ? ESModuleFileType.Script
+    : ext === jsonExt
+    ? ESModuleFileType.JSON
+    : null;
+};
+
+export const detectDefaultFormat = (json: PackageJSON, ext: string) =>
+  detectFormat(json, ext) ?? ESModuleFileType.Script;
