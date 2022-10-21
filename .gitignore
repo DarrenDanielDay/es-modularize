@@ -2,7 +2,8 @@
 demo/**/*.js
 demo/**/*.js.map
 !demo/**/setup*.js
-
+demo/react/main.css
+demo/react/main.css.map
 # Logs
 logs
 *.log

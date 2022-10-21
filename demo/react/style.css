@@ -65,3 +65,27 @@ kbd {
     transform: rotate(360deg);
   }
 }
+
+button {
+  cursor: pointer;
+  line-height: 1.15;
+  font-weight: 400;
+  font-style: normal;
+  text-align: right;
+  margin: 0;
+  box-sizing: inherit;
+  text-decoration: none;
+  display: inline-block;
+  background-color: #61dafb;
+  color: #000000;
+  padding: 10px 25px;
+  white-space: nowrap;
+  transition: background-color 0.2s ease-out;
+  font-size: 20px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+button:hover {
+  background-color: #ffffff;
+}

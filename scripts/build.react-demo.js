@@ -27,6 +27,7 @@ await esbuild.build({
             type: "object",
             members: {
               createElement: "func",
+              useReducer: 'func',
               StrictMode: "constant",
             },
           },

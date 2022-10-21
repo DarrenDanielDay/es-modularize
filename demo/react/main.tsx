@@ -3,12 +3,17 @@
 /// <reference path="./injected.d.ts" />
 import ReactDOM from "react-dom/client";
 import { inject } from "func-di";
+import "./style.css";
 console.log(inject);
 function App() {
+  const [count, addCount] = React.useReducer((a: number) => a + 1, 0);
   return (
     <div className="App">
       <header className="App-header">
         <img src="./logo.svg" className="App-logo" alt="logo" />
+        <p>
+          <button onClick={addCount}>Click to add count: {count}</button>
+        </p>
         <p>
           Edit <code>src/demo/main.tsx</code>, save {"&"} press <kbd>F5</kbd> to reload.
         </p>
