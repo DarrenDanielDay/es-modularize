@@ -1,7 +1,7 @@
 import { globalEvaluatedVariable } from "./constants";
 import type { FS, ScriptURL, SourceFile } from "./core";
 import { createNetReader } from "./net";
-import { trimSlash } from "./utils";
+import { create, trimSlash } from "./utils";
 
 export const createBrowserFS = (cdnRoot = "https://unpkg.com"): FS => {
   cdnRoot = trimSlash(cdnRoot);
@@ -46,7 +46,7 @@ const globalEvaluated: Record<string, unknown> = {};
 Object.assign(globalThis, { [globalEvaluatedVariable]: globalEvaluated });
 
 export const createBlob = (text: string, type = "application/javascript") =>
-  URL.createObjectURL(new Blob([text], { type }));
+  URL.createObjectURL(create(Blob, [text], { type }));
 
 export const createESMProxyScript = (module: NodeJS.Module) => {
   const { exports } = module;

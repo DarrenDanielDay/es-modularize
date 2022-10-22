@@ -3,6 +3,7 @@ import { createBlob, createESMProxyScript } from "./browser";
 import { loadCJSModule } from "./cjs";
 import { type Dependencies, ESModuleFileType, type ImportMapJSON, type PackageHost, type PackageMeta } from "./core";
 import type { NodePolyfills } from "./node-polyfills";
+import { create } from "./utils";
 
 export type ProjectLoader = {
   /**
@@ -43,7 +44,7 @@ export const createProjectLoader = (host: PackageHost, config?: ProjectLoaderCon
       const meta = host.resolvePackage({ name, specifier });
       return [name, meta];
     });
-    const visited = new Set<PackageMeta>();
+    const visited = create(Set<PackageMeta>);
     const flattenRecursive = rawRecursiveGenerator<[TryResolvedEntry], ResolvedEntry>(function* ([name, meta]) {
       if (!meta || visited.has(meta)) {
         return;

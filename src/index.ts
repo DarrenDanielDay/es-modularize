@@ -1,9 +1,10 @@
-import { createBrowserFS } from "./browser";
+import { createBlob, createBrowserFS } from "./browser";
 import type { ImportMapJSON } from "./core";
 import { createPackageHost } from "./host";
 import { createNetReader } from "./net";
 import { createProjectLoader, ProjectLoaderConfig } from "./project-loader";
 import { createPackageRegistry } from "./registry";
+import { create } from "./utils";
 
 const _ESModularize = {
   createProjectLoader(config?: ProjectLoaderConfig) {
@@ -28,11 +29,11 @@ const _ESModularize = {
 
       const exportNames = Object.keys(globalObject).join(",");
       const code = `const{${exportNames}}=globalThis["${globalNamespace}"];export{${exportNames}};export default globalThis["${globalNamespace}"];`;
-      return URL.createObjectURL(new Blob([code], { type: "text/javascript" }));
+      return createBlob(code);
     };
     return {
       sync() {
-        const xhr = new XMLHttpRequest();
+        const xhr = create(XMLHttpRequest);
         xhr.open("GET", path, false);
         xhr.send();
         (0, eval)(xhr.response);
@@ -44,7 +45,7 @@ const _ESModularize = {
         const s = document.createElement("script");
         s.src = path;
         (document.body ?? document.head).appendChild(s);
-        await new Promise<void>((resolve) => {
+        await create(Promise<void>, (resolve) => {
           const handler = () => {
             s.removeEventListener("load", handler);
             resolve();
@@ -59,13 +60,13 @@ const _ESModularize = {
   },
   /**
    * Build and create an HTMLScriptElement like this:
-   * 
+   *
    * ```html
    * <script type="importmap">
    *  {"imports": {"npm-package-name": "some URL of JavaScript file in ES module format"}}
    * </script>
    * ```
-   * 
+   *
    * @param map import map
    */
   build(map: ImportMapJSON) {

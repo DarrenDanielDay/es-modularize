@@ -31,14 +31,15 @@ export const virgin = () => Object.create(null);
 
 export const getStringTag = (content: unknown) => Object.prototype.toString.call(content);
 export const isRelative = (path: string) => path.startsWith(relativeTo) || path.startsWith(parentTo);
-export const toRelative = (base: string, full: string) => full.replace(new RegExp(`^${base}/`), relativeTo);
+export const toRelative = (base: string, full: string) => full.replace(create(RegExp, `^${base}/`), relativeTo);
 export const trimSlash = (path: string) => path.replace(/[\\\/]$/, "");
 
-export const proxyGlobalVariableForCode =
-  <Env extends {}, R = unknown>(code: string, env: Env): (() => R) =>
-  () => {
-    const entries = Object.entries(env);
-    const keys = entries.map(([key]) => key);
-    const values = entries.map(([, value]) => value);
-    return new Function(`${keys.join(",")}`, code).apply(globalThis, values);
+export const proxyGlobalVariableForCode = <Env extends {}, R = unknown>(code: string, env: Env): (() => R) => {
+  const entries = Object.entries(env);
+  const keys = entries.map(([key]) => key);
+  const values = entries.map(([, value]) => value);
+  const func = create(Function, `${keys.join(",")}`, code);
+  return () => {
+    return func.apply(globalThis, values);
   };
+};
