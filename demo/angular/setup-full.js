@@ -1,5 +1,5 @@
 /// <reference path="../../src/index.ts" />
-/// <reference path="../setup-shared.js" />
+/// <reference path="../global.d.ts" />
 (() => {
   const importMap = ESModularize.createProjectLoader({
     cdnRoot,
