@@ -6,17 +6,16 @@ import { resolve } from "path";
 import { readFile, writeFile } from "fs/promises";
 const isDev = !process.argv.includes("--prod");
 //#region react demo
-const outfile = "./demo/react/main.js";
-await esbuild.build({
-  entryPoints: ["./demo/react/main.tsx"],
+const { outputFiles } = await esbuild.build({
+  entryPoints: ["./demo/react/main.tsx", "./demo/react/htm-jsx.ts"],
   format: "esm",
   platform: "browser",
   minify: !isDev,
   watch: isDev,
   target: "es2020",
   bundle: true,
-  external: ["react", "react-dom", "func-di"],
-  outfile,
+  external: ["react", "react-dom", "htm", "func-di"],
+  outdir: "./demo/react",
   sourcemap: true,
   plugins: [
     simplifyGlobalAPI({
@@ -27,7 +26,7 @@ await esbuild.build({
             type: "object",
             members: {
               createElement: "func",
-              useReducer: 'func',
+              useReducer: "func",
               StrictMode: "constant",
             },
           },
@@ -38,7 +37,11 @@ await esbuild.build({
   ],
 });
 
-if (!isDev) {
+/**
+ *
+ * @param {string} outfile
+ */
+const minifyByTerser = async (outfile) => {
   const distFile = resolve(outfile);
   const { code } = await minify(await readFile(distFile, { encoding: "utf-8" }), {
     compress: true,
@@ -51,5 +54,8 @@ if (!isDev) {
     throw new Error("Terser minify failed.");
   }
   await writeFile(distFile, code);
+};
+for (const file of outputFiles ?? []) {
+  await minifyByTerser(file.path);
 }
 //#endregion
