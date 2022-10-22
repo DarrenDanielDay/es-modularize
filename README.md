@@ -1,5 +1,9 @@
 # es-modularize
 
+<div align="center">
+  <img src="./logo.png" />
+</div>
+
 > Goodbye, bundlers. Hello, `es-modularize`.
 
 [![Publish CI](https://github.com/DarrenDanielDay/es-modularize/actions/workflows/publish.yml/badge.svg)](https://github.com/DarrenDanielDay/es-modularize/actions/) [![npm version](https://badge.fury.io/js/es-modularize.svg)](https://badge.fury.io/js/es-modularize)
