@@ -1,7 +1,7 @@
 # es-modularize
 
 <div align="center">
-  <img src="./logo.png" />
+  <img src="./logo.png" width="192" height="192" />
 </div>
 
 > Goodbye, bundlers. Hello, `es-modularize`.
