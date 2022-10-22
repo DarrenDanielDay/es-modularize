@@ -1,4 +1,4 @@
-import path from "path-browserify";
+import * as path from "./path";
 import { rawRecursive } from "taio/esm/libs/custom/algorithms/recursive.mjs";
 import {
   definitelyTypedLibPrefix,

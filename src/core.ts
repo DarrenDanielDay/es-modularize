@@ -1,5 +1,5 @@
-import type path from "path-browserify";
 import { cjsExt, jsExt, jsonExt, mjsExt, MODULE, scopeTag, selfReference, slash } from "./constants";
+import type { SimplifiedPathObject } from "./path";
 import { die } from "./utils";
 
 export enum ESModuleFileType {
@@ -95,7 +95,7 @@ export type ScriptURL = {
   /** subpath */
   subpath: string;
   /** parsed subpath */
-  parsed: path.PathObject;
+  parsed: SimplifiedPathObject;
   /** host */
   host: PackageHost;
   /** package meta */

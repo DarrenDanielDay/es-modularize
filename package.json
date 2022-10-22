@@ -64,7 +64,6 @@
     "@angular/platform-browser-dynamic": "^14.2.7",
     "esbuild-plugin-global-api": "^0.2.2",
     "func-di": "^1.4.0",
-    "path-browserify": "^1.0.1",
     "semver": "^7.3.8",
     "taio": "^0.5.0"
   }
