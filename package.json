@@ -8,7 +8,7 @@
     "start": "concurrently npm:start:*",
     "start:serve": "open-cli http://localhost:3001 && serve demo -p 3001",
     "start:watch": "node ./scripts/build.js",
-    "start:anular-demo": "node ./scripts/build.angular-demo.js",
+    "start:angular-demo": "node ./scripts/build.angular-demo.js",
     "start:react-demo": "node ./scripts/build.react-demo.js",
     "build": "concurrently npm:build:*",
     "build:angular-demo": "node ./scripts/build.angular-demo.js --prod",
