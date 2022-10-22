@@ -114,29 +114,44 @@
       }
     </style>
     <script>
-      var to = (url) => {
-        const form = document.querySelector("form");
-        const data = new FormData(form);
-        const params = new URLSearchParams();
-        for (const [key, value] of data.entries()) {
-          params.set(key, value);
+      function to(url) {
+        var registryEl = document.getElementById("registry");
+        var cdnEl = document.getElementById("cdn");
+        if (!(registryEl instanceof HTMLInputElement && cdnEl instanceof HTMLInputElement)) {
+          return;
         }
-        const q = `?${params.toString()}`;
-        open(url + q, "_self");
-      };
+        var registry = encodeURIComponent(registryEl.value || "");
+        var cdn = encodeURIComponent(cdnEl.value || "");
+        if (typeof url !== "string") {
+          return;
+        }
+        var params = [
+          ["registry", registry],
+          ["cdn", cdn],
+        ]
+          .filter(function (entry) {
+            return !!entry[1];
+          })
+          .map(function (entry) {
+            return entry[0].concat("=").concat(entry[1]);
+          });
+        var search = params.join("&");
+        var target = url + (search && "?" + search);
+        window.open(target, "_self");
+      }
     </script>
     <div class="root centered">
       <form class="centered">
         <div class="form-row">
           <label for="registry"> registry </label>
           <div class="inputs">
-            <input id="registry" name="registry" placeholder="default to: https://registry.npmjs.org" />
+            <input id="registry" name="registry" type="url" placeholder="default to: https://registry.npmjs.org" />
           </div>
         </div>
         <div class="form-row">
           <label for="cdn"> CDN </label>
           <div class="inputs">
-            <input id="cdn" name="cdn" placeholder="default to: https://unpkg.com" />
+            <input id="cdn" name="cdn" type="url" placeholder="default to: https://unpkg.com" />
           </div>
         </div>
       </form>

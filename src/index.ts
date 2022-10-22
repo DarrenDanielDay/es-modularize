@@ -72,6 +72,7 @@ const _ESModularize = {
     const importmap = document.createElement("script");
     importmap.type = "importmap";
     importmap.textContent = JSON.stringify(map);
+    importmap.nonce = undefined;
     const firstScript = document.currentScript || document.querySelector("script");
     if (firstScript) {
       firstScript.after(importmap);

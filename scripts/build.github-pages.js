@@ -7,7 +7,7 @@ const PUBLIC_URL = process.env.PUBLIC_URL ?? "";
 const kinds = ["angular", "react"];
 const files = ["index.html", "full-load.html"];
 const targets = kinds.flatMap((k) => files.flatMap((f) => demoPath(k, f)));
-targets.push(demoPath("index.html"));
+targets.push(demoPath("index.html"), demoPath("not-supported.html"));
 for (const target of targets) {
   const html = await readFile(target, { encoding: "utf-8" });
   await writeFile(

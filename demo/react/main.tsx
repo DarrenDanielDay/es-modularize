@@ -1,9 +1,11 @@
 /// <reference types="react" />
 /// <reference types="react-dom" />
 /// <reference path="./injected.d.ts" />
+/// <reference path="../global.d.ts" />
 import ReactDOM from "react-dom/client";
 import { inject } from "func-di";
 import "./style.css";
+globalThis.__ESM_LOADED__ = true;
 console.log(inject);
 function App() {
   const [count, addCount] = React.useReducer((a: number) => a + 1, 0);
