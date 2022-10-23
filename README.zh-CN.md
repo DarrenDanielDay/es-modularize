@@ -8,7 +8,7 @@
 
 [![Publish CI](https://github.com/DarrenDanielDay/es-modularize/actions/workflows/publish.yml/badge.svg)](https://github.com/DarrenDanielDay/es-modularize/actions/) [![npm version](https://badge.fury.io/js/es-modularize.svg)](https://badge.fury.io/js/es-modularize)
 
-[English](../README.md) | 简体中文
+[English](./README.md) | 简体中文
 
 一个仅浏览器可用的用于转换`npm`包为`ES module`的工具库。
 
