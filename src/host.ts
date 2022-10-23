@@ -8,7 +8,6 @@ import {
   latest,
   MODULE,
   PACKAGE_JSON,
-  relativeTo,
   selfReference,
   slash,
 } from "./constants";
