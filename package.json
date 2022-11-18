@@ -1,6 +1,6 @@
 {
   "name": "es-modularize",
-  "version": "2.0.3",
+  "version": "2.1.0",
   "description": "A browser only library for converting npm package to ES module.",
   "main": "./dist/index.js",
   "type": "module",
