@@ -1,5 +1,7 @@
-import { contentTypeHeader } from "./constants";
-import { create } from "./utils";
+import { factory } from "func-di";
+import { contentTypeHeader } from "./constants.js";
+import { $net } from "./deps.js";
+import { create } from "./utils.js";
 
 export type RawResponse = {
   /** url */
@@ -16,8 +18,7 @@ export type NetReader = {
   /** read net content */
   read(url: string): RawResponse | null;
 };
-
-export const createNetReader = (fetch: typeof window.fetch): NetReader => {
+const createNetReader = (): NetReader => {
   const read: NetReader["read"] = (url) => {
     const xhr = create(XMLHttpRequest);
     xhr.open("GET", url, false);
@@ -37,3 +38,4 @@ export const createNetReader = (fetch: typeof window.fetch): NetReader => {
     read,
   };
 };
+export const NetReaderImpl = factory($net, createNetReader);

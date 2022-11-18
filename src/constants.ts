@@ -14,4 +14,5 @@ export const cjsExt = ".cjs";
 export const MODULE = "module";
 export const COMMONJS = "commonjs";
 export const PACKAGE_JSON = "package.json";
+export const CONTENT_JSON = "application/json";
 export const INDEX = "index";

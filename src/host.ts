@@ -1,4 +1,4 @@
-import * as path from "./path";
+import * as path from "./path.js";
 import { rawRecursive } from "taio/esm/libs/custom/algorithms/recursive.mjs";
 import {
   definitelyTypedLibPrefix,
@@ -10,7 +10,7 @@ import {
   PACKAGE_JSON,
   selfReference,
   slash,
-} from "./constants";
+} from "./constants.js";
 import {
   type FS,
   type PackageHost,
@@ -32,10 +32,12 @@ import {
   packageId,
   detectFormat,
   detectDefaultFormat,
-} from "./core";
-import { notFound, notSupported } from "./errors";
-import type { PackageRegistry } from "./registry";
-import { die, isRelative, toRelative, trimSlash, warn } from "./utils";
+} from "./core.js";
+import { notFound, notSupported } from "./errors.js";
+import type { PackageRegistry } from "./registry.js";
+import { die, isRelative, toRelative, trimSlash, warn } from "./utils.js";
+import { inject } from "func-di";
+import { $fs, $host, $registry } from "./deps.js";
 const exportReferenceNotSupported = (ref: ExportReference) =>
   notSupported(`Cannot find export subpath: ${JSON.stringify(ref)}`);
 const getRefSubpath = (
@@ -63,7 +65,10 @@ const getRefSubpath = (
   }
   return [_default ?? exportReferenceNotSupported(ref), null];
 };
-export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHost => {
+export const PackageHostImpl = inject({ fs: $fs, registry: $registry }).implements($host, (ctx) =>
+  createPackageHost(ctx.fs, ctx.registry)
+);
+const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHost => {
   const resolveAsFile = (url: ScriptURL): ESModuleFile | null => {
     const isModule = url.packageMeta.packageJSON.type === MODULE;
     const targetSuffixes: [string, ESModuleFileType][] = [
@@ -143,6 +148,7 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
         return null;
       }
       const meta: PendingPackageMeta = {
+        specifier,
         packageJSON,
       };
       // @ts-expect-error later updated type
@@ -163,11 +169,11 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
           name,
           specifier,
         });
-        depsArray.push(
-          meta
-            ? [name, meta]
-            : die(`Cannot resolve dependency "${packageId(name, specifier)}" for ${withExports.packageJSON.name}`)
-        );
+        if (!meta) {
+          console.warn(`Cannot resolve dependency "${packageId(name, specifier)}" for ${withExports.packageJSON.name}, skipped.`);
+          continue;
+        }
+        depsArray.push([name, meta]);
       }
       return Object.assign<PackageMetaWithExports, DependencyAddOn>(withExports, {
         deps: Object.fromEntries(depsArray),
@@ -305,6 +311,7 @@ export const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHos
   const createAnonymousURL: PackageHost["createAnonymousURL"] = (subpath, deps, tag) =>
     createURL(
       {
+        specifier: latest,
         exportMapping: () => undefined,
         staticMapping: {},
         packageJSON: {

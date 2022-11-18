@@ -1,13 +1,18 @@
-import type { PackageJSON, PackageSpec } from "./core";
-import type { NetReader } from "./net";
-import { die, getStringTag, trimSlash } from "./utils";
+import { inject } from "func-di";
+import type { PackageJSON, PackageSpec } from "./core.js";
+import type { NetReader } from "./net.js";
+import { die, getStringTag, trimSlash } from "./utils.js";
 import { maxSatisfying, SemVer } from "semver";
-import { latest } from "./constants";
+import { latest } from "./constants.js";
+import { $config, $net, $registry } from "./deps.js";
 export type PackageRegistry = {
   /** resolve */
   resolve(spec: PackageSpec): PackageJSON | null;
 };
-export const createPackageRegistry = (net: NetReader, registry = "https://registry.npmjs.org"): PackageRegistry => {
+export const RegistryImpl = inject({ net: $net, config: $config }).implements($registry, (ctx) =>
+  createPackageRegistry(ctx.net, ctx.config.registry)
+);
+const createPackageRegistry = (net: NetReader, registry: string): PackageRegistry => {
   registry = trimSlash(registry);
   const resolveCache: Record<string, PackageJSON> = {};
   const resolve: PackageRegistry["resolve"] = ({ name, specifier }) => {

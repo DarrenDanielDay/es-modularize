@@ -1,4 +1,4 @@
-import { parentTo, relativeTo } from "./constants";
+import { parentTo, relativeTo } from "./constants.js";
 
 export type Static<T extends {}> = Pick<T, keyof T>;
 export type Func<T extends (...args: readonly never[]) => unknown> = (

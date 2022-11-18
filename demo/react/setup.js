@@ -2,7 +2,7 @@
 /// <reference path="../global.d.ts" />
 // @ts-check
 (() => {
-  const importMap = ESModularize.createProjectLoader({
+  const loader = ESModularize.createStaticProjectLoader({
     cdnRoot,
     registry,
     nodeGlobals: {
@@ -12,14 +12,8 @@
         },
       },
     },
-  }).load(
-    {
-      react: "18.2.0",
-      "react-dom": "18.2.0",
-      "func-di": "1.4.2",
-    },
-    ["react", "react-dom/client", "func-di"]
-  );
+  });
+  const importMap = loader.loadResolved();
   console.log(importMap);
   ESModularize.build(importMap);
 })();

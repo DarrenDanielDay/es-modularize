@@ -1,5 +1,5 @@
-import { selfReference, slash } from "./constants";
-import { trimSlash } from "./utils";
+import { selfReference, slash } from "./constants.js";
+import { trimSlash } from "./utils.js";
 
 /**
  * Simplified join logic.
@@ -8,8 +8,19 @@ import { trimSlash } from "./utils";
  */
 export const join = (base: string, subPath: string) => {
   if (!base) base = ".";
-  const newSub = subPath.replace(/^\.\/?/, "");
-  return `${trimSlash(base)}${newSub ? `/${newSub}` : ""}`;
+  const fragments = base.split(slash);
+  const commands = subPath.split(slash);
+  for (const command of commands) {
+    if (command === "." || !command) {
+      continue;
+    }
+    if (command === "..") {
+      fragments.pop();
+      continue;
+    }
+    fragments.push(command);
+  }
+  return fragments.join(slash);
 };
 
 export interface SimplifiedPathObject {

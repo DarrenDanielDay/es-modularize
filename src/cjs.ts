@@ -1,6 +1,6 @@
-import { type ESModuleFile, ESModuleFileType, type PackageHost, type ScriptURL } from "./core";
-import { noSupport, notFound, notSupported } from "./errors";
-import { type Func, proxyGlobalVariableForCode, type Static, trimSlash, virgin, warn } from "./utils";
+import { type ESModuleFile, ESModuleFileType, type PackageHost, type ScriptURL } from "./core.js";
+import { noSupport, notFound, notSupported } from "./errors.js";
+import { type Func, proxyGlobalVariableForCode, type Static, trimSlash, virgin, warn } from "./utils.js";
 
 export interface ModuleExports {
   readonly __esModule?: true;

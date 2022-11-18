@@ -2,15 +2,7 @@
 /// <reference path="../global.d.ts" />
 
 (() => {
-  const dependencies = {
-    "@angular/common": "14.2.7",
-    "@angular/compiler": "14.2.7",
-    "@angular/core": "14.2.7",
-    "@angular/platform-browser": "14.2.7",
-    "@angular/platform-browser-dynamic": "14.2.7",
-    tslib: "2.4.0",
-  };
-  const importMap = ESModularize.createProjectLoader({
+  const importMap = ESModularize.createStaticProjectLoader({
     cdnRoot,
     registry,
     nodeGlobals: {
@@ -20,7 +12,7 @@
         },
       },
     },
-  }).load(dependencies, Object.keys(dependencies));
+  }).loadResolved();
   ESModularize.build({
     imports: {
       ...importMap.imports,

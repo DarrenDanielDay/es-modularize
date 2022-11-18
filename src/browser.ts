@@ -1,11 +1,14 @@
-import { globalEvaluatedVariable } from "./constants";
-import type { FS, ScriptURL, SourceFile } from "./core";
-import { createNetReader } from "./net";
-import { create, trimSlash } from "./utils";
-
-export const createBrowserFS = (cdnRoot = "https://unpkg.com"): FS => {
+import { inject } from "func-di";
+import { globalEvaluatedVariable } from "./constants.js";
+import type { FS, ScriptURL, SourceFile } from "./core.js";
+import { $config, $fs, $net } from "./deps.js";
+import type {  NetReader } from "./net.js";
+import { create, trimSlash } from "./utils.js";
+export const BrowserFSImpl = inject({ config: $config, net: $net }).implements($fs, (ctx) =>
+  createBrowserFS(ctx.net, ctx.config.cdnRoot)
+);
+const createBrowserFS = (net: NetReader, cdnRoot: string): FS => {
   cdnRoot = trimSlash(cdnRoot);
-  const net = createNetReader(window.fetch);
   const read: FS["read"] = (url) => {
     const requestURL = resolveRequestURL(url);
     const response = net.read(requestURL);
@@ -26,16 +29,16 @@ export const createBrowserFS = (cdnRoot = "https://unpkg.com"): FS => {
   const resolveRequestURL = (url: ScriptURL) => {
     return url.url;
   };
-  const exists: FS['exists'] = (file): file is SourceFile => {
+  const exists: FS["exists"] = (file): file is SourceFile => {
     if (!file) {
       return false;
     }
-    const { contentType } = file
+    const { contentType } = file;
     if (!contentType) {
       return true;
     }
-    return !contentType.match(/html|plain/)
-  }
+    return !contentType.match(/html|plain/);
+  };
   return {
     root: cdnRoot,
     read,

@@ -1,4 +1,4 @@
-import type { DeepPartial } from "./utils";
+import type { DeepPartial } from "./utils.js";
 
 export const polyfillProcess = (processPatch?: DeepPartial<NodeJS.Process>): NodeJS.Process =>
   // @ts-expect-error Skipped type check because we do not create real `process` instance for browsers actually.

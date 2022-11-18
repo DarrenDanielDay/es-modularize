@@ -1,6 +1,6 @@
-import { cjsExt, jsExt, jsonExt, mjsExt, MODULE, scopeTag, selfReference, slash } from "./constants";
-import type { SimplifiedPathObject } from "./path";
-import { die } from "./utils";
+import { cjsExt, jsExt, jsonExt, mjsExt, MODULE, scopeTag, selfReference, slash } from "./constants.js";
+import type { SimplifiedPathObject } from "./path.js";
+import { die } from "./utils.js";
 
 export enum ESModuleFileType {
   JSON = "json",
@@ -60,6 +60,7 @@ export interface PackageJSON {
 }
 
 export type PendingPackageMeta = {
+  specifier: string;
   /** package.json */
   packageJSON: PackageJSON;
 };

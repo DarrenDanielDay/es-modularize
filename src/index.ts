@@ -1,19 +1,35 @@
-import { createBlob, createBrowserFS } from "./browser";
-import type { ImportMapJSON } from "./core";
-import { createPackageHost } from "./host";
-import { createNetReader } from "./net";
-import { createProjectLoader, ProjectLoaderConfig } from "./project-loader";
-import { createPackageRegistry } from "./registry";
-import { create } from "./utils";
+import { container, implementation, provide } from "func-di";
+import { BrowserFSImpl, createBlob } from "./browser.js";
+import type { ImportMapJSON } from "./core.js";
+import { $config, $projectLoader } from "./deps.js";
+import { PackageHostImpl } from "./host.js";
+import { NetReaderImpl } from "./net.js";
+import { patchConfigWithDefaults, ProjectLoaderConfig, ProjectLoaderImpl } from "./project-loader.js";
+import { RegistryImpl } from "./registry.js";
+import { ResolvedRegistryImpl } from "./resolved.js";
+import { PackageResolverImpl } from "./resolver.js";
+import { create } from "./utils.js";
 
+const root = container([
+  provide.stateful(BrowserFSImpl),
+  provide.stateful(NetReaderImpl),
+  provide.stateful(RegistryImpl),
+  provide.stateful(PackageHostImpl),
+  provide.stateful(ProjectLoaderImpl),
+  provide.stateful(PackageResolverImpl),
+]);
 const _ESModularize = {
   createProjectLoader(config?: ProjectLoaderConfig) {
-    const fs = createBrowserFS(config?.cdnRoot);
-    const net = createNetReader(fetch);
-    const registry = createPackageRegistry(net, config?.registry);
-    const host = createPackageHost(fs, registry);
-    const projectLoader = createProjectLoader(host, config);
+    const ioc = root.register([provide.stateful(implementation($config, patchConfigWithDefaults(config)))]);
+    const projectLoader = ioc.request($projectLoader);
     return projectLoader;
+  },
+  createStaticProjectLoader(config?: ProjectLoaderConfig) {
+    const ioc = root.override([
+      provide.stateful(ResolvedRegistryImpl),
+      provide.stateful(implementation($config, patchConfigWithDefaults(config))),
+    ]);
+    return ioc.request($projectLoader);
   },
   /**
    * Load a script directly, useful for UMD sources.

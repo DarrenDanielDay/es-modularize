@@ -1,9 +1,12 @@
-import { rawRecursiveGenerator } from "taio/esm/libs/custom/algorithms/recursive.mjs";
-import { createBlob, createESMProxyScript } from "./browser";
-import { loadCJSModule } from "./cjs";
-import { type Dependencies, ESModuleFileType, type ImportMapJSON, type PackageHost, type PackageMeta } from "./core";
-import type { NodePolyfills } from "./node-polyfills";
-import { create } from "./utils";
+import { inject } from "func-di";
+import { createBlob, createESMProxyScript } from "./browser.js";
+import { loadCJSModule } from "./cjs.js";
+import { CONTENT_JSON } from "./constants.js";
+import { type Dependencies, ESModuleFileType, type ImportMapJSON, type PackageHost, type PackageMeta } from "./core.js";
+import { $config, $host, $projectLoader, $net, $resolver } from "./deps.js";
+import type { NetReader } from "./net.js";
+import { NodePolyfills, polyfillProcess } from "./node-polyfills.js";
+import type { PackageResolver, ResolvedCache } from "./resolver.js";
 
 export type ProjectLoader = {
   /**
@@ -17,6 +20,10 @@ export type ProjectLoader = {
    * @param loadOnly the import paths you want to create alias, default to all possible import paths
    */
   load(deps: Dependencies, loadOnly?: string[]): ImportMapJSON;
+  /**
+   * Similar to {@link ProjectLoader.load}, but using static resolved dependency data.
+   */
+  loadResolved(): ImportMapJSON;
 };
 
 export type ProjectLoaderConfig = Partial<{
@@ -29,34 +36,43 @@ export type ProjectLoaderConfig = Partial<{
    */
   registry: string;
   /**
+   * The data path of statically resolved `package.json`s.
+   * @default "./resolved.json"
+   */
+  resolvedAt: string;
+  /**
    * The ndoe global variables you want to inject.
    * Useful when referenced npm packages are using `process.env.NODE_ENV` etc.
    */
   nodeGlobals: NodePolyfills;
 }>;
+export const patchConfigWithDefaults = (config?: ProjectLoaderConfig | undefined) => {
+  const result: Required<ProjectLoaderConfig> = {
+    cdnRoot: config?.cdnRoot ?? "https://unpkg.com",
+    registry: config?.registry ?? "https://registry.npmjs.org",
+    nodeGlobals: config?.nodeGlobals ?? {
+      process: polyfillProcess(),
+    },
+    resolvedAt: config?.resolvedAt ?? "./resolved.json",
+  };
+  return result;
+};
 
-export const createProjectLoader = (host: PackageHost, config?: ProjectLoaderConfig): ProjectLoader => {
-  const load: ProjectLoader["load"] = (deps, loadOnly) => {
-    Object.assign(globalThis, config?.nodeGlobals);
-    type TryResolvedEntry = [string, PackageMeta | null];
-    type ResolvedEntry = [pkg: string, meta: PackageMeta];
-    const entries = Object.entries(deps).map<TryResolvedEntry>(([name, specifier]) => {
-      const meta = host.resolvePackage({ name, specifier });
-      return [name, meta];
-    });
-    const visited = create(Set<PackageMeta>);
-    const flattenRecursive = rawRecursiveGenerator<[TryResolvedEntry], ResolvedEntry>(function* ([name, meta]) {
-      if (!meta || visited.has(meta)) {
-        return;
-      }
-      visited.add(meta);
-      yield this.value([name, meta]);
-      for (const entry of Object.entries(meta.deps)) {
-        yield this.sequence(entry);
-      }
-    });
-    const resolvedEntries = entries.flatMap((e) => [...flattenRecursive(e)]);
-    const resolvedDependencies = Object.fromEntries(resolvedEntries);
+export const ProjectLoaderImpl = inject({ host: $host, net: $net, config: $config, resolver: $resolver }).implements(
+  $projectLoader,
+  (ctx) => createProjectLoader(ctx.host, ctx.resolver, ctx.net, ctx.config)
+);
+const createProjectLoader = (
+  host: PackageHost,
+  resolver: PackageResolver,
+  net: NetReader,
+  config: Required<ProjectLoaderConfig>
+): ProjectLoader => {
+  const loadImportMap = (
+    resolvedDependencies: ResolvedCache,
+    resolvedEntries: [string, PackageMeta][],
+    loadOnly: string[] | undefined
+  ) => {
     const projectURL = host.createAnonymousURL("./index.js", resolvedDependencies);
     const groups = resolvedEntries
       .flatMap(([, meta]) => Object.entries(meta.staticMapping))
@@ -75,7 +91,7 @@ export const createProjectLoader = (host: PackageHost, config?: ProjectLoaderCon
             return [[importPath, proxyScriptURL]];
           }
           case ESModuleFileType.JSON:
-            return [[importPath, createBlob(file.content, "application/json")]];
+            return [[importPath, createBlob(file.content, CONTENT_JSON)]];
           case ESModuleFileType.Module:
             return [[importPath, file.url.url]];
           default:
@@ -87,7 +103,25 @@ export const createProjectLoader = (host: PackageHost, config?: ProjectLoaderCon
       imports: mapping,
     };
   };
+  const preload = () => {
+    Object.assign(globalThis, config?.nodeGlobals);
+  };
+  const load: ProjectLoader["load"] = (deps, loadOnly) => {
+    preload();
+    const resolvedDependencies = resolver.resolveAll(deps);
+    const resolvedEntries = Object.entries(resolvedDependencies);
+    return loadImportMap(resolvedDependencies, resolvedEntries, loadOnly);
+  };
+  const loadResolved: ProjectLoader["loadResolved"] = () => {
+    preload();
+    const staticData = resolver.resolveStatic();
+    const { deps, loadOnly } = staticData;
+    const resolvedDependencies = resolver.resolveAll(deps);
+    const resolvedEntries = Object.entries(resolvedDependencies);
+    return loadImportMap(resolvedDependencies, resolvedEntries, loadOnly);
+  };
   return {
     load,
+    loadResolved,
   };
 };

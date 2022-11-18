@@ -10,11 +10,11 @@
     "start:watch": "node ./scripts/build.js",
     "start:angular-demo": "node ./scripts/build.angular-demo.js",
     "start:react-demo": "node ./scripts/build.react-demo.js",
-    "build": "concurrently npm:build:*",
+    "build": "npm run build-node && concurrently npm:build:*",
     "build:angular-demo": "node ./scripts/build.angular-demo.js --prod",
     "build:react-demo": "node ./scripts/build.react-demo.js --prod && node ./scripts/build.js --prod --demo",
     "build:github-pages": "node ./scripts/build.github-pages.js",
-    "build:node": "ts-esmbuilder",
+    "build-node": "ts-esmbuilder",
     "build:browser": "node ./scripts/build.js --prod"
   },
   "repository": {
@@ -31,7 +31,12 @@
   },
   "module": "./dist/index.js",
   "exports": {
-    ".": "./dist"
+    ".": "./dist",
+    "./node": {
+      "node": {
+        "import": "./dist/static-loader.js"
+      }
+    }
   },
   "license": "MIT",
   "bugs": {
@@ -64,7 +69,8 @@
     "@angular/core": "^14.2.7",
     "@angular/platform-browser-dynamic": "^14.2.7",
     "esbuild-plugin-global-api": "^0.2.2",
-    "func-di": "^1.4.0",
+    "func-di": "^1.4.6",
+    "hayasa": "^0.2.2",
     "semver": "^7.3.8",
     "taio": "^0.5.0"
   }

@@ -4,6 +4,19 @@ import { minify } from "terser";
 import { simplifyGlobalAPI, defaultApplyTo } from "esbuild-plugin-global-api";
 import { resolve } from "path";
 import { readFile, writeFile } from "fs/promises";
+// @ts-expect-error package self reference
+import { loadStaticallyAndSaveDefaultJSON } from "es-modularize/node";
+
+await loadStaticallyAndSaveDefaultJSON(
+  "demo/react",
+  {
+    react: "latest",
+    "react-dom": "latest",
+    "func-di": "latest",
+  },
+  ["react", "react-dom/client", "func-di"]
+);
+
 const isDev = !process.argv.includes("--prod");
 //#region react demo
 const { outputFiles } = await esbuild.build({

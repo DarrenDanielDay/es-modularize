@@ -6,6 +6,7 @@ demo/react/main.css
 demo/react/main.css.map
 demo/react/htm-jsx.css
 demo/react/htm-jsx.css.map
+demo/**/resolved.json
 # Logs
 logs
 *.log
