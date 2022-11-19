@@ -33,6 +33,7 @@ import {
   packageId,
   detectFormat,
   detectDefaultFormat,
+  isAliasMapping,
 } from "./core.js";
 import { notFound, notSupported } from "./errors.js";
 import type { PackageRegistry } from "./registry.js";
@@ -72,15 +73,20 @@ const getRefSubpath = (
     return exportReferenceNotSupported(ref);
   }
   const { browser, worker, import: _import, require, default: _default, module, commonjs } = ref;
-  const esm = browser ?? worker ?? module ?? _import ?? (_default && detectIfESM(_default, pjson) && _default);
+  const esm =
+    browser ??
+    worker ??
+    module ??
+    _import ??
+    (_default && detectIfESM(getRefSubpath(_default, pjson)[0], pjson) && _default);
   if (esm) {
-    return [esm, ESModuleFileType.Module];
+    return [getRefSubpath(esm, pjson)[0], ESModuleFileType.Module];
   }
   const cjs = require ?? commonjs;
   if (cjs) {
-    return [cjs, ESModuleFileType.Script];
+    return [getRefSubpath(cjs, pjson)[0], ESModuleFileType.Script];
   }
-  return [_default ?? exportReferenceNotSupported(ref), null];
+  return [getRefSubpath(_default ?? exportReferenceNotSupported(ref), pjson)[0], null];
 };
 export const PackageHostImpl = inject({ fs: $fs, registry: $registry }).implements($host, (ctx) =>
   createPackageHost(ctx.fs, ctx.registry)
@@ -265,10 +271,12 @@ const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHost => {
             return [subpath, subpath, format];
           })
         : exports
-        ? Object.entries(exports).map<ExportsEntry>(([alias, ref]) => {
-            const [subpath, format] = getRefSubpath(ref, packageJSON);
-            return [alias, subpath, format];
-          })
+        ? isAliasMapping(exports)
+          ? Object.entries(exports).map<ExportsEntry>(([alias, ref]) => {
+              const [subpath, format] = getRefSubpath(ref, packageJSON);
+              return [alias, subpath, format];
+            })
+          : [[selfReference, ...getRefSubpath(exports, packageJSON)]]
         : module
         ? [[selfReference, module, ESModuleFileType.Module]]
         : [];

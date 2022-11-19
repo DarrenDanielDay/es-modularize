@@ -19,20 +19,24 @@ export const packageId = (name: string, specifier: string) => `${name}${scopeTag
 
 export type Dependencies = { [packageName: string]: string };
 
-export type PlatformExportPath = Record<
-  "browser" | "worker" | "import" | "module" | "require" | "commonjs" | "default",
-  `./${string}` | undefined
->;
+export type ConditionalExports = {
+  [K in "browser" | "worker" | "import" | "module" | "require" | "commonjs" | "default"]: ExportReference | undefined;
+};
 
-export type ExportReference = string | PlatformExportPath | Array<string | PlatformExportPath>;
+export type ExportDestination = string | ConditionalExports;
+
+export type ExportReference = ExportDestination | ExportDestination[];
+
+export type AliasMapping = Record<`./${string}` | ".", ExportReference>;
+
+export const isAliasMapping = (exports: Exports): exports is AliasMapping =>
+  exports != null && typeof exports === "object" && Object.keys(exports).every((key) => key.startsWith("."));
 
 export type Exports =
-  /** single main export */
-  | string
   /** alias mapping */
-  | Record<`./${string}` | ".", ExportReference>
+  | AliasMapping
   /** isomorphic exports */
-  | Array<ExportReference>;
+  | ExportReference;
 
 export type StaticExportMapping = Record<
   /**
