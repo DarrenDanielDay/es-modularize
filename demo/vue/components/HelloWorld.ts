@@ -5,6 +5,10 @@ export default defineComponent({
 <h1>{{ msg }}</h1>
 
 <p>
+  <a href="./full-load">Full load demo (very slow)</a>
+</p>
+
+<p>
   Recommended IDE setup:
   <a href="https://code.visualstudio.com/" target="_blank">VS Code</a>
   +
