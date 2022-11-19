@@ -45,9 +45,10 @@ const exportReferenceNotSupported = (ref: ExportReference) =>
 /**
  * Detect if the export subpath is pointing to a file in esm format by the subpath itself.
  * @param subpath export subpath
+ * @param pjson package.json
  */
-const detectIfESM = (subpath: string) => {
-  if (subpath.endsWith(mjsExt)) {
+const detectIfESM = (subpath: string, pjson: PackageJSON) => {
+  if (detectFormat(pjson, path.parse(subpath).ext) === ESModuleFileType.Module) {
     return true;
   }
   if (subpath.split(slash).some((fragment) => fragment.includes("esm") || fragment === "es")) {
@@ -71,7 +72,7 @@ const getRefSubpath = (
     return exportReferenceNotSupported(ref);
   }
   const { browser, worker, import: _import, require, default: _default, module, commonjs } = ref;
-  const esm = browser ?? worker ?? module ?? _import ?? (_default && detectIfESM(_default) && _default);
+  const esm = browser ?? worker ?? module ?? _import ?? (_default && detectIfESM(_default, pjson) && _default);
   if (esm) {
     return [esm, ESModuleFileType.Module];
   }
