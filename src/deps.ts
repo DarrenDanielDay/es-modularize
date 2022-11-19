@@ -10,4 +10,4 @@ export const $registry = token<PackageRegistry>("registry");
 export const $host = token<PackageHost>("host");
 export const $projectLoader = token<ProjectLoader>("project-loader");
 export const $config = token<Required<ProjectLoaderConfig>>("config");
-export const $resolver = token<PackageResolver>('resolver')
+export const $resolver = token<PackageResolver>("resolver");

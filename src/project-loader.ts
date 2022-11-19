@@ -3,10 +3,10 @@ import { createBlob, createESMProxyScript } from "./browser.js";
 import { loadCJSModule } from "./cjs.js";
 import { CONTENT_JSON } from "./constants.js";
 import { type Dependencies, ESModuleFileType, type ImportMapJSON, type PackageHost, type PackageMeta } from "./core.js";
-import { $config, $host, $projectLoader, $net, $resolver } from "./deps.js";
-import type { NetReader } from "./net.js";
+import { $config, $host, $projectLoader, $resolver } from "./deps.js";
 import { NodePolyfills, polyfillProcess } from "./node-polyfills.js";
 import type { PackageResolver, ResolvedCache } from "./resolver.js";
+import { trimSlash } from "./utils.js";
 
 export type ProjectLoader = {
   /**
@@ -48,8 +48,8 @@ export type ProjectLoaderConfig = Partial<{
 }>;
 export const patchConfigWithDefaults = (config?: ProjectLoaderConfig | undefined) => {
   const result: Required<ProjectLoaderConfig> = {
-    cdnRoot: config?.cdnRoot ?? "https://unpkg.com",
-    registry: config?.registry ?? "https://registry.npmjs.org",
+    cdnRoot: trimSlash(config?.cdnRoot ?? "https://unpkg.com"),
+    registry: trimSlash(config?.registry ?? "https://registry.npmjs.org"),
     nodeGlobals: config?.nodeGlobals ?? {
       process: polyfillProcess(),
     },
@@ -58,14 +58,13 @@ export const patchConfigWithDefaults = (config?: ProjectLoaderConfig | undefined
   return result;
 };
 
-export const ProjectLoaderImpl = inject({ host: $host, net: $net, config: $config, resolver: $resolver }).implements(
+export const ProjectLoaderImpl = inject({ host: $host, config: $config, resolver: $resolver }).implements(
   $projectLoader,
-  (ctx) => createProjectLoader(ctx.host, ctx.resolver, ctx.net, ctx.config)
+  ({ config, host, resolver }) => createProjectLoader(host, resolver, config)
 );
 const createProjectLoader = (
   host: PackageHost,
   resolver: PackageResolver,
-  net: NetReader,
   config: Required<ProjectLoaderConfig>
 ): ProjectLoader => {
   const loadImportMap = (
