@@ -6,9 +6,21 @@ import { readFile, writeFile } from "fs/promises";
 // @ts-expect-error package self reference
 import { loadStaticallyAndSaveDefaultJSON } from "es-modularize/node";
 
-await loadStaticallyAndSaveDefaultJSON("demo/vue", {
-  vue: "^3.2.45",
-});
+await loadStaticallyAndSaveDefaultJSON(
+  "demo/vue",
+  {
+    vue: "^3.2.45",
+  },
+  [
+    "vue",
+    "@vue/compiler-core",
+    "@vue/compiler-dom",
+    "@vue/runtime-dom",
+    "@vue/runtime-core",
+    "@vue/shared",
+    "@vue/reactivity",
+  ]
+);
 
 const isDev = !process.argv.includes("--prod");
 //#region react demo
