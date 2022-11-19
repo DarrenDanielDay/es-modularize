@@ -33,7 +33,10 @@ const createBrowserFS = (net: NetReader, cdnRoot: string): FS => {
     if (!file) {
       return false;
     }
-    const { contentType } = file;
+    const { contentType, redirected } = file;
+    if (redirected) {
+      return false;
+    }
     if (!contentType) {
       return true;
     }
