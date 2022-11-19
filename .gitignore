@@ -1,4 +1,5 @@
 # For this project
+package-lock.json
 demo/**/*.js
 demo/**/*.js.map
 !demo/**/setup*.js
