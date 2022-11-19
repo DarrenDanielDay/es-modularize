@@ -5,14 +5,17 @@
   "main": "./dist/index.js",
   "type": "module",
   "scripts": {
+    "postinstall": "node ./scripts/post-install.js",
     "start": "concurrently npm:start:*",
     "start:serve": "open-cli http://localhost:3001 && serve demo -p 3001",
     "start:watch": "node ./scripts/build.js",
     "start:angular-demo": "node ./scripts/build.angular-demo.js",
     "start:react-demo": "node ./scripts/build.react-demo.js",
+    "start:vue-demo": "node ./scripts/build.vue-demo.js",
     "build": "npm run build-node && concurrently npm:build:*",
     "build:angular-demo": "node ./scripts/build.angular-demo.js --prod",
     "build:react-demo": "node ./scripts/build.react-demo.js --prod && node ./scripts/build.js --prod --demo",
+    "build:vue-demo": "node ./scripts/build.vue-demo.js --prod",
     "build:github-pages": "node ./scripts/build.github-pages.js",
     "build-node": "ts-esmbuilder",
     "build:browser": "node ./scripts/build.js --prod"
@@ -72,6 +75,7 @@
     "func-di": "^1.4.6",
     "hayasa": "^0.2.2",
     "semver": "^7.3.8",
-    "taio": "^0.5.0"
+    "taio": "^0.5.0",
+    "vue": "^3.2.45"
   }
 }
