@@ -1,4 +1,5 @@
 /// <reference path="../global.d.ts" />
+import "zone.js";
 import { platformBrowserDynamic } from "@angular/platform-browser-dynamic";
 import { BrowserModule } from "@angular/platform-browser";
 import { NgModule } from "@angular/core";
@@ -15,6 +16,6 @@ class AppModule {}
 
 platformBrowserDynamic()
   .bootstrapModule(AppModule, {
-    ngZone: "noop",
+    ngZone: "zone.js",
   })
   .catch(console.error);
