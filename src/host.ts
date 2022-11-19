@@ -6,6 +6,7 @@ import {
   jsExt,
   jsonExt,
   latest,
+  mjsExt,
   MODULE,
   PACKAGE_JSON,
   selfReference,
@@ -35,11 +36,26 @@ import {
 } from "./core.js";
 import { notFound, notSupported } from "./errors.js";
 import type { PackageRegistry } from "./registry.js";
-import { die, isRelative, toRelative, trimSlash, warn } from "./utils.js";
+import { isRelative, toRelative, trimSlash, warn } from "./utils.js";
 import { inject } from "func-di";
 import { $fs, $host, $registry } from "./deps.js";
 const exportReferenceNotSupported = (ref: ExportReference) =>
   notSupported(`Cannot find export subpath: ${JSON.stringify(ref)}`);
+
+/**
+ * Detect if the export subpath is pointing to a file in esm format by the subpath itself.
+ * @param subpath export subpath
+ */
+const detectIfESM = (subpath: string) => {
+  if (subpath.endsWith(mjsExt)) {
+    return true;
+  }
+  if (subpath.split(slash).some((fragment) => fragment.includes("esm") || fragment === "es")) {
+    return true;
+  }
+  return false;
+};
+
 const getRefSubpath = (
   ref: ExportReference,
   pjson: PackageJSON
@@ -55,7 +71,7 @@ const getRefSubpath = (
     return exportReferenceNotSupported(ref);
   }
   const { browser, worker, import: _import, require, default: _default, module, commonjs } = ref;
-  const esm = browser ?? worker ?? module ?? _import;
+  const esm = browser ?? worker ?? module ?? _import ?? (_default && detectIfESM(_default) && _default);
   if (esm) {
     return [esm, ESModuleFileType.Module];
   }
@@ -170,7 +186,9 @@ const createPackageHost = (fs: FS, registry: PackageRegistry): PackageHost => {
           specifier,
         });
         if (!meta) {
-          console.warn(`Cannot resolve dependency "${packageId(name, specifier)}" for ${withExports.packageJSON.name}, skipped.`);
+          console.warn(
+            `Cannot resolve dependency "${packageId(name, specifier)}" for ${withExports.packageJSON.name}, skipped.`
+          );
           continue;
         }
         depsArray.push([name, meta]);

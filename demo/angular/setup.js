@@ -13,12 +13,6 @@
       },
     },
   }).loadResolved();
-  ESModularize.build({
-    imports: {
-      ...importMap.imports,
-      // special setup for rxjs
-      rxjs: `${cdnRoot}/rxjs@7.5.7/dist/esm/index.js`,
-      "rxjs/operators": `${cdnRoot}/rxjs@7.5.7/dist/esm/operators/index.js`,
-    },
-  });
+  console.log(importMap);
+  ESModularize.build(importMap);
 })();
