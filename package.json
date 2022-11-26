@@ -48,6 +48,7 @@
   "homepage": "https://github.com/DarrenDanielDay/es-modularize#readme",
   "files": [
     "dist",
+    "scripts/post-install.js",
     "src"
   ],
   "devDependencies": {
