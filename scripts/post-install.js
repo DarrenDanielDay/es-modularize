@@ -1,14 +1,13 @@
 // @ts-check
-import { readFile, writeFile } from "fs/promises";
-console.log("post install: remove vue jsx");
-const file = "./node_modules/@vue/runtime-dom/dist/runtime-dom.d.ts";
-try {
-  const content = await readFile(file, { encoding: "utf-8" });
-  const noJSX = content
-    .split(/\r?\n/g)
-    .filter((_, line) => !(1493 <= line && line <= 1509))
-    .join("\n");
-  await writeFile(file, noJSX);
-} catch (error) {
-  console.log("vue jsx setup ignored.");
-}
+import { exec as _exec } from "child_process";
+import { resolve } from "path";
+import { promisify } from "util";
+const exec = promisify(_exec);
+const cwd = process.cwd();
+await Promise.all(
+  ["angular", "react", "vue"].map(async (demo) => {
+    await exec("npm install", {
+      cwd: resolve(cwd, "demo", demo),
+    });
+  })
+);

@@ -1,40 +1,52 @@
 // @ts-check
 import esbuild from "esbuild";
 import { minify } from "terser";
+import { simplifyGlobalAPI, defaultApplyTo } from "esbuild-plugin-global-api";
 import { resolve } from "path";
 import { readFile, writeFile } from "fs/promises";
-// @ts-expect-error package self reference
-import { loadStaticallyAndSaveDefaultJSON } from "es-modularize/node";
+import { loadStaticallyAndSaveDefaultJSON } from "../../../dist/static-loader.js";
 
 await loadStaticallyAndSaveDefaultJSON(
-  "demo/vue",
+  ".",
   {
-    vue: "^3.2.45",
+    react: "latest",
+    "react-dom": "latest",
+    "func-di": "latest",
   },
-  [
-    "vue",
-    "@vue/compiler-core",
-    "@vue/compiler-dom",
-    "@vue/runtime-dom",
-    "@vue/runtime-core",
-    "@vue/shared",
-    "@vue/reactivity",
-  ]
+  ["react", "react-dom/client", "func-di"]
 );
 
 const isDev = !process.argv.includes("--prod");
 //#region react demo
 const { outputFiles } = await esbuild.build({
-  entryPoints: ["./demo/vue/main.ts"],
+  entryPoints: ["./main.tsx", "./htm-jsx.ts"],
   format: "esm",
   platform: "browser",
   minify: !isDev,
   watch: isDev,
   target: "es2020",
   bundle: true,
-  external: ["@vue/*", "vue"],
-  outdir: "./demo/vue",
+  external: ["react", "react-dom", "htm", "func-di"],
+  outdir: ".",
   sourcemap: true,
+  plugins: [
+    simplifyGlobalAPI({
+      lib: {
+        React: {
+          code: 'import * as React from "react";',
+          rule: {
+            type: "object",
+            members: {
+              createElement: "func",
+              useReducer: "func",
+              StrictMode: "constant",
+            },
+          },
+          applyTo: defaultApplyTo,
+        },
+      },
+    }),
+  ],
 });
 
 /**

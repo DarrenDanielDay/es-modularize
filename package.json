@@ -9,13 +9,14 @@
     "start": "concurrently npm:start:*",
     "start:serve": "open-cli http://localhost:3001 && serve demo -p 3001",
     "start:watch": "node ./scripts/build.js",
-    "start:angular-demo": "node ./scripts/build.angular-demo.js",
-    "start:react-demo": "node ./scripts/build.react-demo.js",
-    "start:vue-demo": "node ./scripts/build.vue-demo.js",
+    "start:angular-demo": "cd ./demo/angular && node ./scripts/build.angular-demo.js",
+    "start:react-demo": "cd ./demo/react && node ./scripts/build.react-demo.js",
+    "start:vue-demo": "cd ./demo/vue && node ./scripts/build.vue-demo.js",
     "build": "npm run build-node && concurrently npm:build:*",
-    "build:angular-demo": "node ./scripts/build.angular-demo.js --prod",
-    "build:react-demo": "node ./scripts/build.react-demo.js --prod && node ./scripts/build.js --prod --demo",
-    "build:vue-demo": "node ./scripts/build.vue-demo.js --prod",
+    "build:common": "node ./scripts/build.js --prod --demo",
+    "build:angular-demo": "cd ./demo/angular && node ./scripts/build.angular-demo.js --prod",
+    "build:react-demo": "cd ./demo/react && node ./scripts/build.react-demo.js --prod",
+    "build:vue-demo": "cd ./demo/vue && node ./scripts/build.vue-demo.js --prod",
     "build:github-pages": "node ./scripts/build.github-pages.js",
     "build-node": "ts-esmbuilder",
     "build:browser": "node ./scripts/build.js --prod"
@@ -52,16 +53,11 @@
     "src"
   ],
   "devDependencies": {
-    "@angular/compiler-cli": "^14.2.7",
     "@types/node": "^18.7.23",
-    "@types/path-browserify": "^1.0.0",
-    "@types/react": "^18.0.21",
-    "@types/react-dom": "^18.0.6",
     "@types/semver": "^7.3.12",
     "concurrently": "^7.4.0",
     "es-module-shims": "^1.6.2",
     "esbuild": "^0.15.10",
-    "htm": "^3.1.1",
     "open-cli": "^7.1.0",
     "prettier": "^2.7.1",
     "serve": "^14.0.1",
@@ -70,13 +66,10 @@
     "typescript": "^4.8.3"
   },
   "dependencies": {
-    "@angular/core": "^14.2.7",
-    "@angular/platform-browser-dynamic": "^14.2.7",
     "esbuild-plugin-global-api": "^0.2.2",
-    "func-di": "^1.4.6",
+    "func-di": "^1.4.7",
     "hayasa": "^0.2.2",
     "semver": "^7.3.8",
-    "taio": "^0.5.0",
-    "vue": "^3.2.45"
+    "taio": "^0.5.0"
   }
 }

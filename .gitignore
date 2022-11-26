@@ -1,7 +1,7 @@
 # For this project
 package-lock.json
-demo/**/*.js
-demo/**/*.js.map
+demo/*/*.js
+demo/*/*.js.map
 !demo/**/setup*.js
 demo/react/main.css
 demo/react/main.css.map
