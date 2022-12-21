@@ -56,10 +56,12 @@ UMD example:
 <!-- define import maps -->
 <script>
   ESModularize.build({
-    react: ESModularize.load("https://unpkg.com/react@18.2.0/umd/react.development.js").sync().umd("React"),
-    "react-dom/client": ESModularize.load("https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js")
-      .sync()
-      .umd("ReactDOM"),
+    imports: {
+      react: ESModularize.load("https://unpkg.com/react@18.2.0/umd/react.development.js").sync().umd("React"),
+      "react-dom/client": ESModularize.load("https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js")
+        .sync()
+        .umd("ReactDOM"),
+    },
   });
 </script>
 <!-- now module imports works -->
