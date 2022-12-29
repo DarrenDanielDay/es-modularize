@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["components/App.css", "components/HelloWorld.css"],
+  "sourcesContent": ["#app {\r\n  font-family: Avenir, Helvetica, Arial, sans-serif;\r\n  -webkit-font-smoothing: antialiased;\r\n  -moz-osx-font-smoothing: grayscale;\r\n  text-align: center;\r\n  color: #2c3e50;\r\n  margin-top: 60px;\r\n}", "a {\r\n  color: #42b983;\r\n}\r\n\r\nlabel {\r\n  margin: 0 0.5em;\r\n  font-weight: bold;\r\n}\r\n\r\ncode {\r\n  background-color: #eee;\r\n  padding: 2px 4px;\r\n  border-radius: 4px;\r\n  color: #304455;\r\n}"],
+  "mappings": "AAAA,KACE,8CACA,mCACA,kCACA,kBACA,cACA,gBCNF,EACE,cAGF,MAJA,cAME,gBAGF,KACE,sBAVF,kCAaE",
+  "names": []
+}

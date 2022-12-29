@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <base href="/es-modularize/" />
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="./www/icon.svg">
+    <title>ESModularize - Not Supported Browser</title>
+    <style>
+      body {
+        font-size: 14px;
+        padding: 0;
+        margin: 1em;
+        box-sizing: border-box;
+      }
+      code {
+        color: #24292f;
+        box-sizing: border-box;
+        line-height: 1em;
+        padding: 0.2em 0.4em;
+        margin: 0;
+        background-color: rgba(175, 184, 193, 0.2);
+        border-radius: 0.25em;
+      }
+      a {
+        color: #539bf5;
+      }
+      .desc {
+        line-height: 1.5;
+      }
+      .browsers {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .browsers a {
+        margin: 4px 4px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .browsers a img {
+        width: 80px;
+        height: 80px;
+      }
+      footer {
+        border-top: 1px solid #adbac7;
+        margin: 2em;
+        color: #adbac7;
+        padding: 1em;
+      }
+      footer span {
+        margin: 0 0.25em;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Oops... Something went wrong with <code>es-modularize</code>.</h1>
+    </header>
+    <main>
+      <p class="desc">
+        Your browser currently does not support <code>&lt;script type="importmap"&gt;</code> feature (and it still does
+        not work with <code>es-module-shims</code> patch).<br />
+        Please try reopening this website using the minimum version of the browser listed below.<br />
+      </p>
+      <p class="browsers">
+        <a href="https://www.google.com/chrome">
+          <img src="./www/imgs/chrome.svg" />
+          <span> Chrome 96+</span>
+        </a>
+        <a href="https://www.microsoft.com/edge">
+          <img src="./www/imgs/edge.svg" />
+          <span> Edge 96+</span>
+        </a>
+        <a href="https://www.mozilla.org/firefox">
+          <img src="./www/imgs/firefox.svg" />
+          <span> FireFox 94+</span>
+        </a>
+        <a href="https://www.apple.com/safari">
+          <img src="./www/imgs/safari.svg" />
+          <span> Safari 16+</span>
+        </a>
+        <a href="https://www.opera.com/">
+          <img src="./www/imgs/opera.svg" />
+          <span> Opera 82+</span>
+        </a>
+      </p>
+      <h2>Your User Agent</h2>
+      <p class="ua"></p>
+      <script type="text/javascript">
+        var ua = document.querySelector("p.ua");
+        var uaInfo = "" + navigator.userAgent;
+        if (ua instanceof HTMLParagraphElement) {
+          ua.textContent = uaInfo;
+        }
+      </script>
+    </main>
+    <footer>
+      <span>Thanks to:</span>
+      <span>
+        <a href="https://iconscout.com/icons/chrome" target="_blank">Chrome Logo Icon</a> by
+        <a href="https://iconscout.com/contributors/jagathish">Jagathish Saravanan</a> on
+        <a href="https://iconscout.com">IconScout</a>
+      </span>
+      <span>
+        <a href="https://iconscout.com/icons/edge" target="_blank">Edge Logo Icon</a> by
+        <a href="https://iconscout.com/contributors/jagathish" target="_blank">Jagathish Saravanan</a>
+      </span>
+      <span>
+        <a href="https://iconscout.com/icons/firefox" target="_blank">Firefox Logo Icon</a> by
+        <a href="https://iconscout.com/contributors/jagathish" target="_blank">Jagathish Saravanan</a>
+      </span>
+      <span>
+        <a href="https://iconscout.com/icons/safari" target="_blank">Safari Icon</a> by
+        <a href="https://iconscout.com/contributors/icon-mafia">Icon Mafia</a> on
+        <a href="https://iconscout.com">IconScout</a>
+      </span>
+      <span>
+        <a href="https://iconscout.com/icons/opera" target="_blank">Opera Logo Icon</a> by
+        <a href="https://iconscout.com/contributors/icon-mafia">Icon Mafia</a> on
+        <a href="https://iconscout.com">IconScout</a>
+      </span>
+    </footer>
+  </body>
+</html>
