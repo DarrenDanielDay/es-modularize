@@ -38,6 +38,7 @@
     ".": "./dist",
     "./node": {
       "node": {
+        "types": "./dist/static-loader.d.ts",
         "import": "./dist/static-loader.js"
       }
     }
